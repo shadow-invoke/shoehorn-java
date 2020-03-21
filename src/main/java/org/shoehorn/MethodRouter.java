@@ -30,7 +30,7 @@ public class MethodRouter {
          */
         for(ArgumentConversion<Object, Object> conversion : this.consumingFrom) {
             if(currentSourceInput == null || !currentSourceInput.getClass().equals(conversion.getFrom())) {
-                currentSourceInput = inputs[currentSourceInputIndex++];
+                currentSourceInput = inputs[++currentSourceInputIndex];
             }
             if(currentDestinationInput == null || !currentDestinationInput.getClass().equals(conversion.getTo())) {
                 currentDestinationInput = conversion.convert(currentSourceInput);
@@ -47,8 +47,8 @@ public class MethodRouter {
     public static class Builder {
         private final String methodFrom;
         private String methodTo;
-        private ArgumentConversion<Object, Object>[] consumingFrom;
-        private ArgumentConversion<Object, Object> producingTo;
+        private ArgumentConversion[] consumingFrom;
+        private ArgumentConversion producingTo;
 
         public Builder(String methodFrom) {
             this.methodFrom = methodFrom;
@@ -59,12 +59,12 @@ public class MethodRouter {
             return this;
         }
 
-        public Builder consuming(ArgumentConversion<Object, Object>... conversions) {
+        public Builder consuming(ArgumentConversion... conversions) {
             this.consumingFrom = conversions;
             return this;
         }
 
-        public Builder producing(ArgumentConversion<Object, Object> conversion) {
+        public Builder producing(ArgumentConversion conversion) {
             this.producingTo = conversion;
             return this;
         }

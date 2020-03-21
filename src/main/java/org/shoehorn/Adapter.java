@@ -7,27 +7,29 @@ import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
+@AllArgsConstructor
 public class Adapter implements MethodInterceptor {
     private final Object adapted;
-    private InterceptAction beforeCall;
-    private InterceptAction afterCall;
-
-    public Adapter(Object adapted) {
-        this.adapted = adapted;
-    }
+    private final Map<Method, MethodRouter> methodRouters;
 
     @Override
     public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-        return null;
+        MethodRouter router = methodRouters.get(method);
+        if(router != null) {
+            return router.forward(args, adapted);
+        }
+        return proxy.invokeSuper(obj, args);
     }
 
     @AllArgsConstructor
     public static class OuterBuilder {
         private final Object adaptedInstance;
 
-        public InnerBuilder<?> as(Class<?> asClass) {
+        public <T> InnerBuilder<T> into(Class<T> asClass) {
             return new InnerBuilder<>(this.adaptedInstance, asClass);
         }
     }
@@ -35,10 +37,21 @@ public class Adapter implements MethodInterceptor {
     public static class InnerBuilder<T> {
         private final Object adaptedInstance;
         private final Class<T> intoClass;
+        private Map<Method, MethodRouter> methodRouters = new HashMap<>();
 
         public InnerBuilder(Object adaptedInstance, Class<T> intoClass) {
             this.adaptedInstance = adaptedInstance;
             this.intoClass = intoClass;
+        }
+
+        public InnerBuilder<T> routing(MethodRouter.Builder... builders) throws AdapterException, NoSuchMethodException {
+            if(builders != null && builders.length > 0) {
+                for(MethodRouter.Builder builder : builders) {
+                    MethodRouter router = builder.build(this.adaptedInstance.getClass(), intoClass);
+                    methodRouters.put(router.getMethodFrom(), router);
+                }
+            }
+            return this;
         }
 
         public T build() throws AdapterException {
@@ -52,8 +65,11 @@ public class Adapter implements MethodInterceptor {
                 String msg = "Incompatible target class %s and adapted instance type %s";
                 throw new AdapterException(String.format(msg, this.intoClass, this.adaptedInstance.getClass()));
             }
+            if(this.methodRouters.size() == 0) {
+                throw new AdapterException("No method routers passed to adapter builder.");
+            }
 
-            return (T)Enhancer.create(this.intoClass, new Adapter(this.adaptedInstance));
+            return (T)Enhancer.create(this.intoClass, new Adapter(this.adaptedInstance, this.methodRouters));
         }
     }
 }

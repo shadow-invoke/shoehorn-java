@@ -51,12 +51,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>ma.glasnost.orika</groupId>
-            <artifactId>orika-core</artifactId>
-            <version>${ma.orika.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
