@@ -5,12 +5,11 @@ import org.shoehorn.model.*;
 import org.shoehorn.service.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.shoehorn.Fluently.*;
 
 public class TestFluently {
     @Test
-    public void testNone() throws AdapterException, NoSuchMethodException {
+    public void testShoehorn() throws AdapterException, NoSuchMethodException {
         GasOven gasOven = new GasOven();
         WoodOven woodOven = shoehorn(gasOven)
                                 .into(WoodOven.class)

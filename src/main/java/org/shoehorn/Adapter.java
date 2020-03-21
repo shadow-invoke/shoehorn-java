@@ -36,18 +36,18 @@ public class Adapter implements MethodInterceptor {
 
     public static class InnerBuilder<T> {
         private final Object adaptedInstance;
-        private final Class<T> intoClass;
+        private final Class<T> exposedClass;
         private Map<Method, MethodRouter> methodRouters = new HashMap<>();
 
-        public InnerBuilder(Object adaptedInstance, Class<T> intoClass) {
+        public InnerBuilder(Object adaptedInstance, Class<T> exposedClass) {
             this.adaptedInstance = adaptedInstance;
-            this.intoClass = intoClass;
+            this.exposedClass = exposedClass;
         }
 
         public InnerBuilder<T> routing(MethodRouter.Builder... builders) throws AdapterException, NoSuchMethodException {
             if(builders != null && builders.length > 0) {
                 for(MethodRouter.Builder builder : builders) {
-                    MethodRouter router = builder.build(this.adaptedInstance.getClass(), intoClass);
+                    MethodRouter router = builder.build(exposedClass, this.adaptedInstance.getClass());
                     methodRouters.put(router.getMethodFrom(), router);
                 }
             }
@@ -58,18 +58,14 @@ public class Adapter implements MethodInterceptor {
             if(this.adaptedInstance == null) {
                 throw new AdapterException("Null adapted instance.");
             }
-            if(this.intoClass == null) {
+            if(this.exposedClass == null) {
                 throw new AdapterException("Null target class.");
-            }
-            if(!this.intoClass.isAssignableFrom(this.adaptedInstance.getClass())) {
-                String msg = "Incompatible target class %s and adapted instance type %s";
-                throw new AdapterException(String.format(msg, this.intoClass, this.adaptedInstance.getClass()));
             }
             if(this.methodRouters.size() == 0) {
                 throw new AdapterException("No method routers passed to adapter builder.");
             }
 
-            return (T)Enhancer.create(this.intoClass, new Adapter(this.adaptedInstance, this.methodRouters));
+            return (T)Enhancer.create(this.exposedClass, new Adapter(this.adaptedInstance, this.methodRouters));
         }
     }
 }
