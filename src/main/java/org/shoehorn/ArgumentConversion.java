@@ -17,31 +17,29 @@ public class ArgumentConversion<FC, TC> {
         argumentConverter.convert(from, to);
     }
 
-    public static class Builder {
-        @NoArgsConstructor(access = AccessLevel.PRIVATE)
-        public static class Initial<FI> {
-            private Class<FI> from;
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class InitialBuilder<FI> {
+        private Class<FI> from;
 
-            public Initial(Class<FI> from) {
-                this.from = from;
-            }
-
-            public <T> Final<FI, T> to(Class<T> to) {
-                return new Final<>(this.from, to);
-            }
+        public InitialBuilder(Class<FI> from) {
+            this.from = from;
         }
 
-        @AllArgsConstructor
-        public static class Final<FF, TF> {
-            private Class<FF> from;
-            private Class<TF> to;
+        public <T> FinalBuilder<FI, T> to(Class<T> to) {
+            return new FinalBuilder<>(this.from, to);
+        }
+    }
 
-            public ArgumentConversion<FF, TF> with(ArgumentConverter<FF, TF> argumentConverter) throws AdapterException {
-                if (argumentConverter == null) {
-                    throw new AdapterException("Null argumentConverter.");
-                }
-                return new ArgumentConversion<>(this.from, this.to, argumentConverter);
+    @AllArgsConstructor
+    public static class FinalBuilder<FF, TF> {
+        private Class<FF> from;
+        private Class<TF> to;
+
+        public ArgumentConversion<FF, TF> with(ArgumentConverter<FF, TF> argumentConverter) throws AdapterException {
+            if (argumentConverter == null) {
+                throw new AdapterException("Null argumentConverter.");
             }
+            return new ArgumentConversion<>(this.from, this.to, argumentConverter);
         }
     }
 }

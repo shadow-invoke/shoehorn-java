@@ -11,4 +11,8 @@ public class WoodOven {
         pizza.setToppings(toppings);
         return pizza;
     }
+
+    public String foo() {
+        return "bar";
+    }
 }

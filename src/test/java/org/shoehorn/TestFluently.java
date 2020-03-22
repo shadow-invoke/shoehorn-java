@@ -63,10 +63,12 @@ public class TestFluently {
                         .build();
         cooked = woodOven.cook(new Dough(Size.LARGE), new Topping[]{Topping.PEPPERONI});
         assertEquals(expected, cooked);
+        // Calling a method with no routing defined should generate an exception
+        assertThrows(AdapterException.class, woodOven::foo);
     }
 
     @Test
-    public void testExceptionCases() throws AdapterException, NoSuchMethodException {
+    public void testBadInputCases() throws AdapterException, NoSuchMethodException {
         // Try null adapted instance
         Adapter.InnerBuilder<WoodOven> builder = shoehorn(null).into(WoodOven.class);
         assertThrows(AdapterException.class, builder::build);
@@ -139,6 +141,62 @@ public class TestFluently {
                                             )
                             );
                 });
+        // Try method router with null destination method
+        assertThrows(AdapterException.class, () -> {
+            lambdaBuilder
+                    .routing(
+                            method("cook")
+                                    .to(null)
+                                    .consuming(
+                                            convert(Dough.class)
+                                                    .to(DoughDTO.class)
+                                                    .with(DoughConverter.INSTANCE),
+                                            convert(Topping[].class)
+                                                    .to(String[].class)
+                                                    .with(ToppingsConverter.INSTANCE)
+                                    )
+                                    .producing(
+                                            convert(PizzaDTO.class)
+                                                    .to(Pizza.class)
+                                                    .with(PizzaDTOConverter.INSTANCE)
+                                    )
+                    );
+        });
+        // Try method router with null source method
+        assertThrows(AdapterException.class, () -> {
+            lambdaBuilder
+                    .routing(
+                            method(null)
+                                    .to("bake")
+                                    .consuming(
+                                            convert(Dough.class)
+                                                    .to(DoughDTO.class)
+                                                    .with(DoughConverter.INSTANCE),
+                                            convert(Topping[].class)
+                                                    .to(String[].class)
+                                                    .with(ToppingsConverter.INSTANCE)
+                                    )
+                                    .producing(
+                                            convert(PizzaDTO.class)
+                                                    .to(Pizza.class)
+                                                    .with(PizzaDTOConverter.INSTANCE)
+                                    )
+                    );
+        });
+        // Try method router with empty convert/consume handlers
+        assertThrows(AdapterException.class, () -> {
+            lambdaBuilder
+                    .routing(
+                            method("cook")
+                                    .to("")
+                                    .consuming(new ArgumentConversion[0])
+                                    .producing(
+                                            convert(PizzaDTO.class)
+                                                    .to(Pizza.class)
+                                                    .with(PizzaDTOConverter.INSTANCE)
+                                    )
+                    );
+        });
         // Try creating a bad conversion handler
         assertThrows(AdapterException.class, () -> {
             convert(Dough.class)

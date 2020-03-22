@@ -19,10 +19,11 @@ public class Adapter implements MethodInterceptor {
     @Override
     public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
         MethodRouter router = methodRouters.get(method);
-        if(router != null) {
-            return router.forward(args, adapted);
+        if(router == null) {
+            String msg = "No method routing specified for method %s of class %s";
+            throw new AdapterException(String.format(msg, method.getName(), this.adapted.getClass().getSimpleName()));
         }
-        return proxy.invokeSuper(obj, args);
+        return router.forward(args, adapted);
     }
 
     @AllArgsConstructor

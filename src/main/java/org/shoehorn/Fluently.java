@@ -12,7 +12,7 @@ public class Fluently {
         return new MethodRouter.Builder(name);
     }
 
-    public static <T> ArgumentConversion.Builder.Initial<T> convert(Class<T> clazz) {
-        return new ArgumentConversion.Builder.Initial<>(clazz);
+    public static <T> ArgumentConversion.InitialBuilder<T> convert(Class<T> clazz) {
+        return new ArgumentConversion.InitialBuilder<>(clazz);
     }
 }
