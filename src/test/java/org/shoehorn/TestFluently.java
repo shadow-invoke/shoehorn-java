@@ -139,5 +139,11 @@ public class TestFluently {
                                             )
                             );
                 });
+        // Try creating a bad conversion handler
+        assertThrows(AdapterException.class, () -> {
+            convert(Dough.class)
+                    .to(DoughDTO.class)
+                    .with(null);
+        });
     }
 }

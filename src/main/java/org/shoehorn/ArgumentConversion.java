@@ -1,7 +1,6 @@
 package org.shoehorn;
 
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
 
 @Data
 @AllArgsConstructor
@@ -32,21 +31,14 @@ public class ArgumentConversion<FC, TC> {
             }
         }
 
-        @Slf4j
         @AllArgsConstructor
         public static class Final<FF, TF> {
             private Class<FF> from;
             private Class<TF> to;
 
-            public ArgumentConversion<FF, TF> with(ArgumentConverter<FF, TF> argumentConverter) {
+            public ArgumentConversion<FF, TF> with(ArgumentConverter<FF, TF> argumentConverter) throws AdapterException {
                 if (argumentConverter == null) {
-                    log.warn("Null argumentConverter, returning null conversion.");
-                    return null;
-                }
-                if (this.from == null || this.to == null) {
-                    String msg = "Bad from class (%s) or to class (%s), returning null conversion.";
-                    log.warn(String.format(msg, this.from, this.to));
-                    return null;
+                    throw new AdapterException("Null argumentConverter.");
                 }
                 return new ArgumentConversion<>(this.from, this.to, argumentConverter);
             }
