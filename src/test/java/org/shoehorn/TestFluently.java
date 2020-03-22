@@ -145,5 +145,23 @@ public class TestFluently {
                     .to(DoughDTO.class)
                     .with(null);
         });
+        // Try forwarding invalid inputs through a valid router
+        final MethodRouter router = method("cook")
+                                        .to("heat")
+                                        .consuming(
+                                            convert(Dough.class)
+                                                    .to(Calzone.class)
+                                                    .with(CalzoneFromDoughConverter.INSTANCE),
+                                            convert(Topping[].class)
+                                                    .to(Calzone.class)
+                                                    .with(CalzoneFromToppingsConverter.INSTANCE)
+                                        )
+                                        .producing(
+                                            convert(Calzone.class)
+                                                    .to(Pizza.class)
+                                                    .with(PizzaFromCalzoneConverter.INSTANCE)
+                                        ).build(WoodOven.class, Microwave.class);
+        assertThrows(AdapterException.class, () -> router.forward(null, new Microwave()));
+        assertThrows(AdapterException.class, () -> router.forward(new Object[1], null));
     }
 }
