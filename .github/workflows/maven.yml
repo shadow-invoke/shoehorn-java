@@ -15,9 +15,9 @@ jobs:
         java-version: 1.8
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    - name: Generate Jacoco report
-      run: mvn clean test jacoco:report coveralls:report
-    - name: Upload coverage report to Coveralls
-      uses: coverallsapp/github-action@v1.0.1
+    - name: Generate coverage report
+      run: mvn cobertura:cobertura
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.CODECOV_TOKEN }}
