@@ -103,7 +103,7 @@ public class MethodRouter {
             return new MethodRouter(
                     classFrom.getMethod(this.methodFrom, uniqueIn.toArray(new Class<?>[uniqueIn.size()])),
                     this.consumingFrom,
-                    classTo.getMethod(this.methodTo, uniqueOut.toArray(new Class<?>[uniqueIn.size()])),
+                    classTo.getMethod(this.methodTo, uniqueOut.toArray(new Class<?>[uniqueOut.size()])),
                     this.producingTo
             );
         }

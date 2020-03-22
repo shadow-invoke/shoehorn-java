@@ -1,15 +1,17 @@
 package org.shoehorn;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.shoehorn.model.*;
 import org.shoehorn.service.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.shoehorn.Fluently.*;
 
 public class TestFluently {
     @Test
     public void testShoehorn() throws AdapterException, NoSuchMethodException {
+        // We're going to make pizza in a gas oven and pass it off as a wood-fired pizza
         GasOven gasOven = new GasOven();
         WoodOven woodOven = shoehorn(gasOven)
                                 .into(WoodOven.class)
@@ -35,5 +37,107 @@ public class TestFluently {
         Pizza expected = PizzaDTOConverter.INSTANCE.convert(baked);
         Pizza cooked = woodOven.cook(new Dough(Size.LARGE), new Topping[]{Topping.PEPPERONI});
         assertEquals(expected, cooked);
+        // That worked so well we're now going to microwave a calzone and call that a wood-fired pizza
+        Microwave microwave = new Microwave();
+        woodOven = shoehorn(microwave)
+                        .into(WoodOven.class)
+                        .routing(
+                                method("cook")
+                                        .to("heat")
+                                        // Example of how multiple inputs of the exposed type can be converted
+                                        // into a single input of the adapted instance.
+                                        .consuming(
+                                                convert(Dough.class)
+                                                        .to(Calzone.class)
+                                                        .with(CalzoneFromDoughConverter.INSTANCE),
+                                                convert(Topping[].class)
+                                                        .to(Calzone.class)
+                                                        .with(CalzoneFromToppingsConverter.INSTANCE)
+                                        )
+                                        .producing(
+                                                convert(Calzone.class)
+                                                        .to(Pizza.class)
+                                                        .with(PizzaFromCalzoneConverter.INSTANCE)
+                                        )
+                        )
+                        .build();
+        cooked = woodOven.cook(new Dough(Size.LARGE), new Topping[]{Topping.PEPPERONI});
+        assertEquals(expected, cooked);
+    }
+
+    @Test
+    public void testExceptionCases() throws AdapterException, NoSuchMethodException {
+        // Try null adapted instance
+        Adapter.InnerBuilder<WoodOven> builder = shoehorn(null).into(WoodOven.class);
+        assertThrows(AdapterException.class, builder::build);
+        // Try null exposed type
+        builder = shoehorn(new GasOven()).into(null);
+        assertThrows(AdapterException.class, builder::build);
+        // Try no method routers
+        builder = shoehorn(new GasOven()).into(WoodOven.class);
+        assertThrows(AdapterException.class, builder::build);
+        // Try method router with no convert/consume specifications
+        final Adapter.InnerBuilder<WoodOven> lambdaBuilder = builder;
+        assertThrows(AdapterException.class, () -> {
+            lambdaBuilder.routing(method("cook").to("bake"));
+        });
+        // Try method router with no produce/convert specifications
+        assertThrows(AdapterException.class, () -> {
+            lambdaBuilder
+                    .routing(
+                            method("cook")
+                                    .to("bake")
+                                    .consuming(
+                                            convert(Dough.class)
+                                                    .to(DoughDTO.class)
+                                                    .with(DoughConverter.INSTANCE),
+                                            convert(Topping[].class)
+                                                    .to(String[].class)
+                                                    .with(ToppingsConverter.INSTANCE)
+                                    )
+                    );
+        });
+        // Try method router with empty destination method
+        assertThrows(AdapterException.class, () -> {
+                    lambdaBuilder
+                            .routing(
+                                    method("cook")
+                                            .to("")
+                                            .consuming(
+                                                    convert(Dough.class)
+                                                            .to(DoughDTO.class)
+                                                            .with(DoughConverter.INSTANCE),
+                                                    convert(Topping[].class)
+                                                            .to(String[].class)
+                                                            .with(ToppingsConverter.INSTANCE)
+                                            )
+                                            .producing(
+                                                    convert(PizzaDTO.class)
+                                                            .to(Pizza.class)
+                                                            .with(PizzaDTOConverter.INSTANCE)
+                                            )
+                            );
+                });
+        // Try method router with empty source method
+        assertThrows(AdapterException.class, () -> {
+                    lambdaBuilder
+                            .routing(
+                                    method("")
+                                            .to("bake")
+                                            .consuming(
+                                                    convert(Dough.class)
+                                                            .to(DoughDTO.class)
+                                                            .with(DoughConverter.INSTANCE),
+                                                    convert(Topping[].class)
+                                                            .to(String[].class)
+                                                            .with(ToppingsConverter.INSTANCE)
+                                            )
+                                            .producing(
+                                                    convert(PizzaDTO.class)
+                                                            .to(Pizza.class)
+                                                            .with(PizzaDTOConverter.INSTANCE)
+                                            )
+                            );
+                });
     }
 }
