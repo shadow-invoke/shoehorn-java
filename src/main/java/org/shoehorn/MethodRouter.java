@@ -13,12 +13,26 @@ import java.util.List;
 public class MethodRouter {
     private final Method methodFrom;
     private final ArgumentConversion<Object, Object>[] consumingFrom;
+    private final MethodForwardingInterceptor beforeForwarding;
     private final Method methodTo;
     private final ArgumentConversion<Object, Object> producingTo;
+    private final MethodForwardingInterceptor afterForwarding;
 
-    public Object forward(Object[] inputs, Object destination) throws AdapterException, InvocationTargetException, IllegalAccessException {
-        if(inputs == null || destination == null) {
-            throw new AdapterException("Null inputs or destination.");
+    /**
+     * Forward a method invocation from the exposed interface to the adapted instance, converting the arguments
+     * consumed by the adapted instance as specified and converting the result produced by it as specified.
+     * @param inputs The arguments passed to the exposed interface by the caller, to be converted into
+     *               a set of arguments accepted by the adapted instance.
+     * @param adaptedInstance The adapted instance itself.
+     * @return The result produced by the adapted instance, to be converted into an instance of the type
+     *         returned by the exposed interface.
+     * @throws AdapterException
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     */
+    public Object forward(Object[] inputs, Object adaptedInstance) throws AdapterException, InvocationTargetException, IllegalAccessException {
+        if(inputs == null || adaptedInstance == null) {
+            throw new AdapterException("Null inputs or adapted instance.");
         }
 
         Object currentSourceInput = null, currentDestinationInput = null;
@@ -40,8 +54,26 @@ public class MethodRouter {
             }
         }
 
-        Object destinationResult = this.methodTo.invoke(destination, destinationInputs.toArray());
-        return this.producingTo.convert(destinationResult);
+        Object[] adaptedInstanceInputs = destinationInputs.toArray();
+
+        if(this.beforeForwarding != null) {
+            Object forwardingResult = this.beforeForwarding.intercept(adaptedInstanceInputs, adaptedInstance, null);
+            if(forwardingResult != null) {
+                // Supercede the result that would've been returned by the adapted instance and don't invoke its method.
+                return this.producingTo.convert(forwardingResult);
+            }
+        }
+
+        Object adaptedInstanceResult = this.methodTo.invoke(adaptedInstance, adaptedInstanceInputs);
+
+        if(this.afterForwarding != null) {
+            Object forwardingResult = this.afterForwarding.intercept(adaptedInstanceInputs, adaptedInstance, adaptedInstanceResult);
+            if(forwardingResult != null) {
+                // Replace the result that would've been returned by the adapted instance and don't invoke its method.
+                adaptedInstanceResult = forwardingResult;
+            }
+        }
+        return this.producingTo.convert(adaptedInstanceResult);
     }
 
     public static class Builder {
@@ -49,13 +81,44 @@ public class MethodRouter {
         private String methodTo;
         private ArgumentConversion[] consumingFrom;
         private ArgumentConversion producingTo;
+        private MethodForwardingInterceptor beforeForwarding = null;
+        private MethodForwardingInterceptor afterForwarding = null;
 
+        /**
+         * Construct a new MethodRouter Builder.
+         * @param methodFrom The name of the exposed interface's method from which this is routing.
+         */
         public Builder(String methodFrom) {
             this.methodFrom = methodFrom;
         }
 
+        /**
+         * Sets the name of the destination method.
+         * @param methodTo The name of the adapted instance's method to which this is routing.
+         * @return The Builder, for fluency.
+         */
         public Builder to(String methodTo) {
             this.methodTo = methodTo;
+            return this;
+        }
+
+        /**
+         * Action to be performed before the method invocation is forwarded.
+         * @param interceptor The action to be performed.
+         * @return The Builder, for fluency.
+         */
+        public Builder before(MethodForwardingInterceptor interceptor) {
+            this.beforeForwarding = interceptor;
+            return this;
+        }
+
+        /**
+         * Action to be performed after the method invocation is forwarded.
+         * @param interceptor The action to be performed.
+         * @return The Builder, for fluency.
+         */
+        public Builder after(MethodForwardingInterceptor interceptor) {
+            this.afterForwarding = interceptor;
             return this;
         }
 
@@ -103,8 +166,10 @@ public class MethodRouter {
             return new MethodRouter(
                     classFrom.getMethod(this.methodFrom, uniqueIn.toArray(new Class<?>[uniqueIn.size()])),
                     this.consumingFrom,
+                    this.beforeForwarding,
                     classTo.getMethod(this.methodTo, uniqueOut.toArray(new Class<?>[uniqueOut.size()])),
-                    this.producingTo
+                    this.producingTo,
+                    this.afterForwarding
             );
         }
     }

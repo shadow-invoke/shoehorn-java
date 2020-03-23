@@ -13,7 +13,13 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 public class Adapter implements MethodInterceptor {
-    private final Object adapted;
+    /**
+     * The adapted instance to which method invocations will be routed.
+     */
+    private final Object adaptedInstance;
+    /**
+     * Method routing specifications, including consume/produce converters and forwarding hooks.
+     */
     private final Map<Method, MethodRouter> methodRouters;
 
     @Override
@@ -21,34 +27,41 @@ public class Adapter implements MethodInterceptor {
         MethodRouter router = methodRouters.get(method);
         if(router == null) {
             String msg = "No method routing specified for method %s of class %s";
-            throw new AdapterException(String.format(msg, method.getName(), this.adapted.getClass().getSimpleName()));
+            String cls = this.adaptedInstance.getClass().getSimpleName();
+            throw new AdapterException(String.format(msg, method.getName(), cls));
         }
-        return router.forward(args, adapted);
+        return router.forward(args, this.adaptedInstance);
     }
 
     @AllArgsConstructor
     public static class OuterBuilder {
         private final Object adaptedInstance;
 
-        public <T> InnerBuilder<T> into(Class<T> asClass) {
-            return new InnerBuilder<>(this.adaptedInstance, asClass);
+        /**
+         * Specify the exposed interface for this adapter.
+         * @param exposedInterface Class instance of the exposed interface (can also be a concrete or abstract class).
+         * @param <T> Type parameter (unbounded).
+         * @return An InnerBuilder of the appropriate generic type.
+         */
+        public <T> InnerBuilder<T> into(Class<T> exposedInterface) {
+            return new InnerBuilder<>(this.adaptedInstance, exposedInterface);
         }
     }
 
     public static class InnerBuilder<T> {
         private final Object adaptedInstance;
-        private final Class<T> exposedClass;
+        private final Class<T> exposedInterface;
         private Map<Method, MethodRouter> methodRouters = new HashMap<>();
 
-        public InnerBuilder(Object adaptedInstance, Class<T> exposedClass) {
+        public InnerBuilder(Object adaptedInstance, Class<T> exposedInterface) {
             this.adaptedInstance = adaptedInstance;
-            this.exposedClass = exposedClass;
+            this.exposedInterface = exposedInterface;
         }
 
         public InnerBuilder<T> routing(MethodRouter.Builder... builders) throws AdapterException, NoSuchMethodException {
             if(builders != null && builders.length > 0) {
                 for(MethodRouter.Builder builder : builders) {
-                    MethodRouter router = builder.build(exposedClass, this.adaptedInstance.getClass());
+                    MethodRouter router = builder.build(this.exposedInterface, this.adaptedInstance.getClass());
                     methodRouters.put(router.getMethodFrom(), router);
                 }
             }
@@ -59,14 +72,14 @@ public class Adapter implements MethodInterceptor {
             if(this.adaptedInstance == null) {
                 throw new AdapterException("Null adapted instance.");
             }
-            if(this.exposedClass == null) {
+            if(this.exposedInterface == null) {
                 throw new AdapterException("Null target class.");
             }
             if(this.methodRouters.size() == 0) {
                 throw new AdapterException("No method routers passed to adapter builder.");
             }
 
-            return (T)Enhancer.create(this.exposedClass, new Adapter(this.adaptedInstance, this.methodRouters));
+            return (T)Enhancer.create(this.exposedInterface, new Adapter(this.adaptedInstance, this.methodRouters));
         }
     }
 }
