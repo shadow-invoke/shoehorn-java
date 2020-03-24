@@ -21,7 +21,7 @@ Using Maven and [JitPack](https://jitpack.io/)
     <dependency>
       <groupId>com.github.shadow-invoke</groupId>
       <artifactId>shoehorn-java</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0</version>
     </dependency>
 ```
 
