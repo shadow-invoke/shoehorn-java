@@ -8,21 +8,14 @@ custom code other than argument converters (which [Mapstruct](https://mapstruct.
 
 ## Installation
 
-Using Maven and [JitPack](https://jitpack.io/)
+Maven Central:
 
 ```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-...
-    <dependency>
-      <groupId>com.github.shadow-invoke</groupId>
-      <artifactId>shoehorn-java</artifactId>
-      <version>0.2.0</version>
-    </dependency>
+<dependency>
+  <groupId>io.shadowstack</groupId>
+  <artifactId>shoehorn-java</artifactId>
+  <version>0.2.0</version>
+</dependency>
 ```
 
 ## Usage
