@@ -46,6 +46,10 @@ public class Shoehorn {
                 .routing(
                     method("feedAndBreedLikeABird")
                         .to("feedAndBreedLikeACat")
+                        .before((inputs, instance, result) -> {
+                            System.out.println("Pre-call hook");
+                            return null;
+                        })
                         .consuming(
                             convert(Worm.class)
                                 .to(Mouse.class)
@@ -76,6 +80,10 @@ public class Shoehorn {
                                     }
                                 )
                         )
+                        .after((inputs, instance, result) -> {
+                            System.out.println("Post-call hook");
+                            return null;
+                        })
                 )
                 .build();
         Egg fromAKittenWat = butNotReally.feedAndBreedLikeABird(new Worm());
