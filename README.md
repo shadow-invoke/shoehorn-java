@@ -1,7 +1,7 @@
 ![square pegs in round holes](https://raw.githubusercontent.com/shadow-invoke/assets/master/shoehorn-java/shoehorn-logo-120.png)
 # Shoehorn
 
-![Java CI](https://github.com/shoehorn-adapter/shoehorn-java/workflows/Java%20CI/badge.svg) [![codecov](https://codecov.io/gh/shoehorn-adapter/shoehorn-java/branch/master/graph/badge.svg)](https://codecov.io/gh/shoehorn-adapter/shoehorn-java)
+![Java CI](https://github.com/shadow-invoke/shoehorn-java/workflows/Java%20CI/badge.svg) [![codecov](https://codecov.io/gh/shadow-invoke/shoehorn-java/branch/master/graph/badge.svg)](https://codecov.io/gh/shoehorn-adapter/shoehorn-java)
 
 Ad-hoc, fluent adapters for Java. Shoehorn any instance into any other interface or class, regardless of inheritance and with no 
 custom code other than argument converters (which [Mapstruct](https://mapstruct.org/) can do for you).
