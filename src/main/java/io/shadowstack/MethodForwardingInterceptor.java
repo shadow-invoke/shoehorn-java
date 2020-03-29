@@ -15,7 +15,7 @@ public interface MethodForwardingInterceptor {
      *         value will be ignored. Otherwise, any non-null value will replace whatever would have been returned
      *         by the adapted instance. If this interceptor is called before the method is invoked on the adapted
      *         instance, then a non-null result will prevent that invocation from ever occurring.
-     * @throws AdapterException
+     * @throws AdapterException wraps throwables generated during conversion
      */
     Object intercept(final Object[] inputs, final Object adaptedInstance, final Object result) throws AdapterException;
 }

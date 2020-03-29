@@ -51,7 +51,7 @@ public class Adapter implements MethodInterceptor {
     public static class InnerBuilder<T> {
         private final Object adaptedInstance;
         private final Class<T> exposedInterface;
-        private Map<Method, MethodRouter> methodRouters = new HashMap<>();
+        private final Map<Method, MethodRouter> methodRouters = new HashMap<>();
 
         public InnerBuilder(Object adaptedInstance, Class<T> exposedInterface) {
             this.adaptedInstance = adaptedInstance;
@@ -68,6 +68,7 @@ public class Adapter implements MethodInterceptor {
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         public T build() throws AdapterException {
             if(this.adaptedInstance == null) {
                 throw new AdapterException("Null adapted instance.");

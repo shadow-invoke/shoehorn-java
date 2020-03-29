@@ -11,6 +11,7 @@ import static io.shadowstack.Fluently.method;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@SuppressWarnings({"CodeBlock2Expr", "ConstantConditions"})
 public class TestFluently {
     @Test
     public void testShoehorn() throws AdapterException, NoSuchMethodException {
@@ -274,7 +275,7 @@ public class TestFluently {
                     .routing(
                         method("cook")
                             .to("")
-                            .consuming(new ArgumentConversion[0])
+                            .consuming()
                             .producing(
                                     Fluently.convert(PizzaDTO.class)
                                             .to(Pizza.class)

@@ -12,6 +12,7 @@ public class WoodOven {
         return pizza;
     }
 
+    @SuppressWarnings({"UnusedReturnValue", "SameReturnValue"})
     public String foo() {
         return "bar";
     }

@@ -9,6 +9,7 @@ public class TestSimple {
     public static class Kitten {}
     public static class Mouse {}
     public static class Cat {
+        @SuppressWarnings({"UnusedReturnValue", "unused"})
         public Kitten feedAndBreedLikeACat(Mouse food) {
             System.out.println("Feed on a mouse");
             return new Kitten();
@@ -17,6 +18,7 @@ public class TestSimple {
     public static class Egg {}
     public static class Worm {}
     public static class Bird {
+        @SuppressWarnings("unused")
         public Egg feedAndBreedLikeABird(Worm food) {
             System.out.println("Feed on a worm");
             return new Egg();

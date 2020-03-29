@@ -23,12 +23,14 @@ public class MethodCapture<T> implements MethodInterceptor {
         this.clazz = clazz;
     }
 
+    @SuppressWarnings("RedundantThrows")
     @Override
     public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
         this.lastInvoked = method;
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public Method from(Consumer<T> caller) {
         T proxy = (T) Enhancer.create(this.clazz, this);
         caller.accept(proxy);

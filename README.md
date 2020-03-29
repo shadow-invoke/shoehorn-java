@@ -94,7 +94,7 @@ public class Shoehorn {
 }
 ```
 
-See [this](./src/test/java/org/shoehorn/TestFluently.java) unit test for a more interesting example.
+See [this](./src/test/java/io/shadowstack/TestFluently.java) unit test for a more interesting example.
 
 ## Why in the world would I want this?
 

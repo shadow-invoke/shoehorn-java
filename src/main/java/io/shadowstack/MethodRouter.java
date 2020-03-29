@@ -26,9 +26,9 @@ public class MethodRouter {
      * @param adaptedInstance The adapted instance itself.
      * @return The result produced by the adapted instance, to be converted into an instance of the type
      *         returned by the exposed interface.
-     * @throws AdapterException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
+     * @throws AdapterException wraps throwables generated during conversion
+     * @throws InvocationTargetException native java.reflection exception
+     * @throws IllegalAccessException native java.reflection exception
      */
     public Object forward(Object[] inputs, Object adaptedInstance) throws AdapterException, InvocationTargetException, IllegalAccessException {
         if(inputs == null || adaptedInstance == null) {
@@ -38,10 +38,8 @@ public class MethodRouter {
         Object currentSourceInput = null, currentDestinationInput = null;
         int currentSourceInputIndex = -1;
         List<Object> destinationInputs = new ArrayList<>();
-        /**
-         * If the "from" Class changes type, we're at a new position in the source arguments.
-         * If the "to" Class changes type, we're at a new position in the destination arguments.
-         */
+        // If the "from" Class changes type, we're at a new position in the source arguments.
+        // If the "to" Class changes type, we're at a new position in the destination arguments.
         for(ArgumentConversion<Object, Object> conversion : this.consumingFrom) {
             if(currentSourceInput == null || !currentSourceInput.getClass().equals(conversion.getFrom())) {
                 currentSourceInput = inputs[++currentSourceInputIndex];
@@ -76,6 +74,7 @@ public class MethodRouter {
         return this.producingTo.convert(adaptedInstanceResult);
     }
 
+    @SuppressWarnings("rawtypes")
     public static class Builder {
         private final String methodFrom;
         private String methodTo;
@@ -132,6 +131,7 @@ public class MethodRouter {
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         public MethodRouter build(Class<?> classFrom, Class<?> classTo) throws NoSuchMethodException, AdapterException {
             if(this.consumingFrom == null || this.consumingFrom.length == 0) {
                 throw new AdapterException("No consuming conversions passed to MethodRouter.Builder.");
@@ -146,10 +146,8 @@ public class MethodRouter {
                 throw new AdapterException("Empty or null source method passed to MethodRouter.Builder.");
             }
 
-            /**
-             * Argument conversions could be many-to-one or one-to-many. When we see a repeated Class as
-             * either input or output, we assume it refers to the same positional argument as before.
-             */
+            // Argument conversions could be many-to-one or one-to-many. When we see a repeated Class as
+            // either input or output, we assume it refers to the same positional argument as before.
             Class<?> lastIn = null, lastOut = null;
             List<Class<?>> uniqueIn = new ArrayList<>(), uniqueOut = new ArrayList<>();
             for(ArgumentConversion<?, ?> conversion : this.consumingFrom) {
@@ -164,10 +162,10 @@ public class MethodRouter {
             }
 
             return new MethodRouter(
-                    classFrom.getMethod(this.methodFrom, uniqueIn.toArray(new Class<?>[uniqueIn.size()])),
+                    classFrom.getMethod(this.methodFrom, uniqueIn.toArray(new Class<?>[0])),
                     this.consumingFrom,
                     this.beforeForwarding,
-                    classTo.getMethod(this.methodTo, uniqueOut.toArray(new Class<?>[uniqueOut.size()])),
+                    classTo.getMethod(this.methodTo, uniqueOut.toArray(new Class<?>[0])),
                     this.producingTo,
                     this.afterForwarding
             );
@@ -202,6 +200,7 @@ public class MethodRouter {
             throw new RuntimeException("You're trying to do something smart with a dumb builder.");
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public MethodRouter build(Class<?> classFrom, Class<?> classTo) throws NoSuchMethodException, AdapterException {
             if(this.consumingFrom == null || this.consumingFrom.length == 0) {
