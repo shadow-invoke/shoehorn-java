@@ -198,6 +198,11 @@ public class MethodRouter {
         }
 
         @Override
+        public Builder to(String methodTo) {
+            throw new RuntimeException("You're trying to do something smart with a dumb builder.");
+        }
+
+        @Override
         public MethodRouter build(Class<?> classFrom, Class<?> classTo) throws NoSuchMethodException, AdapterException {
             if(this.consumingFrom == null || this.consumingFrom.length == 0) {
                 throw new AdapterException("No consuming conversions passed to MethodRouter.Builder.");

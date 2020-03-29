@@ -4,6 +4,8 @@ import io.shadowstack.model.*;
 import io.shadowstack.service.*;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
+
 import static io.shadowstack.Fluently.reference;
 import static io.shadowstack.Fluently.method;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -174,7 +176,78 @@ public class TestFluently {
                                     )
                     );
         });
+        assertThrows(AdapterException.class, () -> {
+            lambdaBuilder
+                    .routing(
+                            method(
+                                    reference(WoodOven.class)
+                                            .from(
+                                                    (oven) -> oven.cook(null, null) // pass whatever
+                                            )
+                            )
+                            .to((Method)null)
+                            .consuming(
+                                    Fluently.convert(Dough.class)
+                                            .to(DoughDTO.class)
+                                            .with(DoughConverter.INSTANCE),
+                                    Fluently.convert(Topping[].class)
+                                            .to(String[].class)
+                                            .with(ToppingsConverter.INSTANCE)
+                            )
+                            .producing(
+                                    Fluently.convert(PizzaDTO.class)
+                                            .to(Pizza.class)
+                                            .with(PizzaDTOConverter.INSTANCE)
+                            )
+                    );
+        });
+        // Try method router with mismatched source method
+        assertThrows(RuntimeException.class, () -> {
+            lambdaBuilder
+                    .routing(
+                            method((Method)null)
+                                    .to("bake")
+                                    .consuming(
+                                            Fluently.convert(Dough.class)
+                                                    .to(DoughDTO.class)
+                                                    .with(DoughConverter.INSTANCE),
+                                            Fluently.convert(Topping[].class)
+                                                    .to(String[].class)
+                                                    .with(ToppingsConverter.INSTANCE)
+                                    )
+                                    .producing(
+                                            Fluently.convert(PizzaDTO.class)
+                                                    .to(Pizza.class)
+                                                    .with(PizzaDTOConverter.INSTANCE)
+                                    )
+                    );
+        });
         // Try method router with null source method
+        assertThrows(AdapterException.class, () -> {
+            lambdaBuilder
+                    .routing(
+                            method((Method)null)
+                                .to(
+                                    reference(GasOven.class)
+                                        .from(
+                                            (oven) -> oven.bake(null, null)
+                                        )
+                                )
+                                .consuming(
+                                        Fluently.convert(Dough.class)
+                                                .to(DoughDTO.class)
+                                                .with(DoughConverter.INSTANCE),
+                                        Fluently.convert(Topping[].class)
+                                                .to(String[].class)
+                                                .with(ToppingsConverter.INSTANCE)
+                                )
+                                .producing(
+                                        Fluently.convert(PizzaDTO.class)
+                                                .to(Pizza.class)
+                                                .with(PizzaDTOConverter.INSTANCE)
+                                )
+                    );
+        });
         assertThrows(AdapterException.class, () -> {
             lambdaBuilder
                     .routing(
@@ -199,14 +272,14 @@ public class TestFluently {
         assertThrows(AdapterException.class, () -> {
             lambdaBuilder
                     .routing(
-                            method("cook")
-                                    .to("")
-                                    .consuming(new ArgumentConversion[0])
-                                    .producing(
-                                            Fluently.convert(PizzaDTO.class)
-                                                    .to(Pizza.class)
-                                                    .with(PizzaDTOConverter.INSTANCE)
-                                    )
+                        method("cook")
+                            .to("")
+                            .consuming(new ArgumentConversion[0])
+                            .producing(
+                                    Fluently.convert(PizzaDTO.class)
+                                            .to(Pizza.class)
+                                            .with(PizzaDTOConverter.INSTANCE)
+                            )
                     );
         });
         // Try creating a bad conversion handler
