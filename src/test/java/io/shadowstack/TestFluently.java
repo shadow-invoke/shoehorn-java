@@ -4,6 +4,8 @@ import io.shadowstack.model.*;
 import io.shadowstack.service.*;
 import org.junit.jupiter.api.Test;
 
+import static io.shadowstack.Fluently.reference;
+import static io.shadowstack.Fluently.method;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -15,21 +17,21 @@ public class TestFluently {
         WoodOven woodOven = Fluently.shoehorn(gasOven)
                                 .into(WoodOven.class)
                                 .routing(
-                                        Fluently.method("cook")
-                                                .to("bake")
-                                                .consuming(
-                                                        Fluently.convert(Dough.class)
-                                                                .to(DoughDTO.class)
-                                                                .with(DoughConverter.INSTANCE),
-                                                        Fluently.convert(Topping[].class)
-                                                                .to(String[].class)
-                                                                .with(ToppingsConverter.INSTANCE)
-                                                )
-                                                .producing(
-                                                        Fluently.convert(PizzaDTO.class)
-                                                                .to(Pizza.class)
-                                                                .with(PizzaDTOConverter.INSTANCE)
-                                                )
+                                        method("cook")
+                                            .to("bake")
+                                            .consuming(
+                                                    Fluently.convert(Dough.class)
+                                                            .to(DoughDTO.class)
+                                                            .with(DoughConverter.INSTANCE),
+                                                    Fluently.convert(Topping[].class)
+                                                            .to(String[].class)
+                                                            .with(ToppingsConverter.INSTANCE)
+                                            )
+                                            .producing(
+                                                    Fluently.convert(PizzaDTO.class)
+                                                            .to(Pizza.class)
+                                                            .with(PizzaDTOConverter.INSTANCE)
+                                            )
                                 )
                                 .build();
         PizzaDTO baked = gasOven.bake(new DoughDTO("LARGE"), new String[]{"PEPPERONI"});
@@ -41,23 +43,34 @@ public class TestFluently {
         woodOven = Fluently.shoehorn(microwave)
                         .into(WoodOven.class)
                         .routing(
-                                Fluently.method("cook")
-                                        .to("heat")
-                                        // Example of how multiple inputs of the exposed type can be converted
-                                        // into a single input of the adapted instance.
-                                        .consuming(
-                                                Fluently.convert(Dough.class)
-                                                        .to(Calzone.class)
-                                                        .with(CalzoneFromDoughConverter.INSTANCE),
-                                                Fluently.convert(Topping[].class)
-                                                        .to(Calzone.class)
-                                                        .with(CalzoneFromToppingsConverter.INSTANCE)
+                                // This time we're going to get all fancy with MethRef-style references.
+                                method(
+                                    reference(WoodOven.class)
+                                        .from(
+                                            (oven) -> oven.cook(null, null) // pass whatever
                                         )
-                                        .producing(
-                                                Fluently.convert(Calzone.class)
-                                                        .to(Pizza.class)
-                                                        .with(PizzaFromCalzoneConverter.INSTANCE)
-                                        )
+                                )
+                                    .to(
+                                        reference(Microwave.class)
+                                            .from(
+                                                micro -> micro.heat(null) // pass whatever
+                                            )
+                                    )
+                                    // Example of how multiple inputs of the exposed type can be converted
+                                    // into a single input of the adapted instance.
+                                    .consuming(
+                                            Fluently.convert(Dough.class)
+                                                    .to(Calzone.class)
+                                                    .with(CalzoneFromDoughConverter.INSTANCE),
+                                            Fluently.convert(Topping[].class)
+                                                    .to(Calzone.class)
+                                                    .with(CalzoneFromToppingsConverter.INSTANCE)
+                                    )
+                                    .producing(
+                                            Fluently.convert(Calzone.class)
+                                                    .to(Pizza.class)
+                                                    .with(PizzaFromCalzoneConverter.INSTANCE)
+                                    )
                         )
                         .build();
         cooked = woodOven.cook(new Dough(Size.LARGE), new Topping[]{Topping.PEPPERONI});
@@ -80,13 +93,13 @@ public class TestFluently {
         // Try method router with no convert/consume specifications
         final Adapter.InnerBuilder<WoodOven> lambdaBuilder = builder;
         assertThrows(AdapterException.class, () -> {
-            lambdaBuilder.routing(Fluently.method("cook").to("bake"));
+            lambdaBuilder.routing(method("cook").to("bake"));
         });
         // Try method router with no produce/convert specifications
         assertThrows(AdapterException.class, () -> {
             lambdaBuilder
                     .routing(
-                            Fluently.method("cook")
+                            method("cook")
                                     .to("bake")
                                     .consuming(
                                             Fluently.convert(Dough.class)
@@ -102,7 +115,7 @@ public class TestFluently {
         assertThrows(AdapterException.class, () -> {
                     lambdaBuilder
                             .routing(
-                                    Fluently.method("cook")
+                                    method("cook")
                                             .to("")
                                             .consuming(
                                                     Fluently.convert(Dough.class)
@@ -123,7 +136,7 @@ public class TestFluently {
         assertThrows(AdapterException.class, () -> {
                     lambdaBuilder
                             .routing(
-                                    Fluently.method("")
+                                    method("")
                                             .to("bake")
                                             .consuming(
                                                     Fluently.convert(Dough.class)
@@ -144,7 +157,7 @@ public class TestFluently {
         assertThrows(AdapterException.class, () -> {
             lambdaBuilder
                     .routing(
-                            Fluently.method("cook")
+                            method("cook")
                                     .to(null)
                                     .consuming(
                                             Fluently.convert(Dough.class)
@@ -165,7 +178,7 @@ public class TestFluently {
         assertThrows(AdapterException.class, () -> {
             lambdaBuilder
                     .routing(
-                            Fluently.method(null)
+                            method((String)null)
                                     .to("bake")
                                     .consuming(
                                             Fluently.convert(Dough.class)
@@ -186,7 +199,7 @@ public class TestFluently {
         assertThrows(AdapterException.class, () -> {
             lambdaBuilder
                     .routing(
-                            Fluently.method("cook")
+                            method("cook")
                                     .to("")
                                     .consuming(new ArgumentConversion[0])
                                     .producing(
@@ -203,7 +216,7 @@ public class TestFluently {
                     .with(null);
         });
         // Try forwarding invalid inputs through a valid router
-        final MethodRouter router = Fluently.method("cook")
+        final MethodRouter router = method("cook")
                                         .to("heat")
                                         .consuming(
                                             Fluently.convert(Dough.class)

@@ -14,7 +14,7 @@ Maven Central:
 <dependency>
   <groupId>io.shadowstack</groupId>
   <artifactId>shoehorn-java</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 
@@ -41,15 +41,21 @@ public class Shoehorn {
     public static void main(String[] args) throws AdapterException, NoSuchMethodException {
         Cat inDisguise = new Cat();
         Bird butNotReally =
-            shoehorn(inDisguise)
-                .into(Bird.class)
-                .routing(
-                    method("feedAndBreedLikeABird")
-                        .to("feedAndBreedLikeACat")
-                        .before((inputs, instance, result) -> {
-                            System.out.println("Pre-call hook");
-                            return null;
-                        })
+                shoehorn(inDisguise)
+                    .into(Bird.class)
+                    .routing(
+                        method(
+                            reference(Bird.class) // MethRef-style reference
+                                .from(
+                                    (bird -> bird.feedAndBreedLikeABird(null)) // pass whatever
+                                )
+                        )
+                        .to(
+                            reference(Cat.class) // MethRef-style reference
+                                .from(
+                                    (cat -> cat.feedAndBreedLikeACat(null)) // pass whatever
+                                )
+                        )
                         .consuming(
                             convert(Worm.class)
                                 .to(Mouse.class)
@@ -80,12 +86,8 @@ public class Shoehorn {
                                     }
                                 )
                         )
-                        .after((inputs, instance, result) -> {
-                            System.out.println("Post-call hook");
-                            return null;
-                        })
-                )
-                .build();
+                    )
+                    .build();
         Egg fromAKittenWat = butNotReally.feedAndBreedLikeABird(new Worm());
         System.out.println("Breed an " + fromAKittenWat.getClass().getSimpleName());
     }

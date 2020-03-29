@@ -79,10 +79,10 @@ public class MethodRouter {
     public static class Builder {
         private final String methodFrom;
         private String methodTo;
-        private ArgumentConversion[] consumingFrom;
-        private ArgumentConversion producingTo;
-        private MethodForwardingInterceptor beforeForwarding = null;
-        private MethodForwardingInterceptor afterForwarding = null;
+        protected ArgumentConversion[] consumingFrom;
+        protected ArgumentConversion producingTo;
+        protected MethodForwardingInterceptor beforeForwarding = null;
+        protected MethodForwardingInterceptor afterForwarding = null;
 
         /**
          * Construct a new MethodRouter Builder.
@@ -168,6 +168,55 @@ public class MethodRouter {
                     this.consumingFrom,
                     this.beforeForwarding,
                     classTo.getMethod(this.methodTo, uniqueOut.toArray(new Class<?>[uniqueOut.size()])),
+                    this.producingTo,
+                    this.afterForwarding
+            );
+        }
+    }
+
+    public static class DumbBuilder extends Builder {
+        private final Method methodFrom;
+        private Method methodTo;
+
+        /**
+         * Construct a new MethodRouter Builder.
+         * @param methodFrom The exposed interface's method from which this is routing.
+         */
+        public DumbBuilder(Method methodFrom) {
+            super(null);
+            this.methodFrom = methodFrom;
+        }
+
+        /**
+         * Sets the name of the destination method.
+         * @param methodTo The name of the adapted instance's method to which this is routing.
+         * @return The Builder, for fluency.
+         */
+        public Builder to(Method methodTo) {
+            this.methodTo = methodTo;
+            return this;
+        }
+
+        @Override
+        public MethodRouter build(Class<?> classFrom, Class<?> classTo) throws NoSuchMethodException, AdapterException {
+            if(this.consumingFrom == null || this.consumingFrom.length == 0) {
+                throw new AdapterException("No consuming conversions passed to MethodRouter.Builder.");
+            }
+            if( this.producingTo == null) {
+                throw new AdapterException("Null producing conversion passed to MethodRouter.Builder.");
+            }
+            if(this.methodTo == null) {
+                throw new AdapterException("Empty or null destination method passed to MethodRouter.Builder.");
+            }
+            if(this.methodFrom == null) {
+                throw new AdapterException("Empty or null source method passed to MethodRouter.Builder.");
+            }
+
+            return new MethodRouter(
+                    this.methodFrom,
+                    this.consumingFrom,
+                    this.beforeForwarding,
+                    this.methodTo,
                     this.producingTo,
                     this.afterForwarding
             );

@@ -79,7 +79,7 @@ public class Adapter implements MethodInterceptor {
                 throw new AdapterException("No method routers passed to adapter builder.");
             }
 
-            return (T)Enhancer.create(this.exposedInterface, new Adapter(this.adaptedInstance, this.methodRouters));
+            return (T) Enhancer.create(this.exposedInterface, new Adapter(this.adaptedInstance, this.methodRouters));
         }
     }
 }

@@ -30,38 +30,48 @@ public class TestSimple {
                 shoehorn(inDisguise)
                     .into(Bird.class)
                     .routing(
-                        method("feedAndBreedLikeABird")
-                            .to("feedAndBreedLikeACat")
-                            .consuming(
-                                convert(Worm.class)
-                                    .to(Mouse.class)
-                                    .with(
-                                        new ArgumentConverter<Worm, Mouse>() {
-                                            @Override
-                                            public Mouse convert(Worm from) throws AdapterException {
-                                                return new Mouse();
-                                            }
-
-                                            @Override
-                                            public void convert(Worm from, Mouse to) throws AdapterException {}
+                        method(
+                            reference(Bird.class)
+                                .from(
+                                    (bird -> bird.feedAndBreedLikeABird(null)) // pass whatever
+                                )
+                        )
+                        .to(
+                            reference(Cat.class)
+                                .from(
+                                    (cat -> cat.feedAndBreedLikeACat(null)) // pass whatever
+                                )
+                        )
+                        .consuming(
+                            convert(Worm.class)
+                                .to(Mouse.class)
+                                .with(
+                                    new ArgumentConverter<Worm, Mouse>() {
+                                        @Override
+                                        public Mouse convert(Worm from) throws AdapterException {
+                                            return new Mouse();
                                         }
-                                    )
-                            )
-                            .producing(
-                                convert(Kitten.class)
-                                    .to(Egg.class)
-                                    .with(
-                                        new ArgumentConverter<Kitten, Egg>() {
-                                            @Override
-                                            public Egg convert(Kitten from) throws AdapterException {
-                                                return new Egg();
-                                            }
 
-                                            @Override
-                                            public void convert(Kitten from, Egg to) throws AdapterException {}
+                                        @Override
+                                        public void convert(Worm from, Mouse to) throws AdapterException {}
+                                    }
+                                )
+                        )
+                        .producing(
+                            convert(Kitten.class)
+                                .to(Egg.class)
+                                .with(
+                                    new ArgumentConverter<Kitten, Egg>() {
+                                        @Override
+                                        public Egg convert(Kitten from) throws AdapterException {
+                                            return new Egg();
                                         }
-                                    )
-                            )
+
+                                        @Override
+                                        public void convert(Kitten from, Egg to) throws AdapterException {}
+                                    }
+                                )
+                        )
                     )
                     .build();
         Egg fromAKittenWat = butNotReally.feedAndBreedLikeABird(new Worm());
