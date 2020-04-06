@@ -92,9 +92,6 @@ public class TestFluently {
         // Try null exposed type
         builder = shoehorn(new GasOven()).into(null);
         assertThrows(AdapterException.class, builder::build);
-        // Try no method routers
-        builder = shoehorn(new GasOven()).into(WoodOven.class);
-        assertThrows(AdapterException.class, builder::build);
         // Try method router with no convert/consume specifications
         final Adapter.InnerBuilder<WoodOven> lambdaBuilder = builder;
         assertThrows(AdapterException.class, () -> {
