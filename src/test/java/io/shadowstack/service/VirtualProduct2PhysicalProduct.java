@@ -8,8 +8,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
-import java.lang.invoke.MethodHandles;
-
 @Mapper
 public interface VirtualProduct2PhysicalProduct extends ArgumentConverter<VirtualProduct, PhysicalProduct> {
     @Override

@@ -9,8 +9,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
-import java.lang.invoke.MethodHandles;
-
 @Mapper
 public interface Receipt2Confirmation extends ArgumentConverter<Receipt, Confirmation> {
     Receipt2Confirmation INSTANCE = Mappers.getMapper(Receipt2Confirmation.class);
@@ -22,8 +20,4 @@ public interface Receipt2Confirmation extends ArgumentConverter<Receipt, Confirm
     @Override
     @Mapping(target = "total", source = "total")
     void convert(Receipt from, @MappingTarget Confirmation to) throws AdapterException;
-
-    static ArgumentConverter<?, ?> instance() {
-        return (ArgumentConverter<?, ?>) Mappers.getMapper(MethodHandles.lookup().lookupClass());
-    }
 }

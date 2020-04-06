@@ -8,8 +8,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
-import java.lang.invoke.MethodHandles;
-
 @Mapper(uses = {VirtualProduct2PhysicalProduct.class})
 public interface VirtualCart2PhysicalCart extends ArgumentConverter<VirtualCart, PhysicalCart> {
     @Override
