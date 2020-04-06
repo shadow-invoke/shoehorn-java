@@ -35,7 +35,7 @@ public class ArgumentConversion<FC, TC> {
         private Class<FF> from;
         private Class<TF> to;
 
-        public ArgumentConversion<FF, TF> with(ArgumentConverter<FF, TF> argumentConverter) throws AdapterException {
+        public ArgumentConversion<FF, TF> using(ArgumentConverter<FF, TF> argumentConverter) throws AdapterException {
             if (argumentConverter == null) {
                 throw new AdapterException("Null argumentConverter.");
             }

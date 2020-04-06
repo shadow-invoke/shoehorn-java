@@ -3,6 +3,9 @@ package io.shadowstack;
 import io.shadowstack.model.*;
 import io.shadowstack.service.*;
 import org.junit.jupiter.api.Test;
+import static io.shadowstack.Fluently.method;
+import static io.shadowstack.Fluently.shoehorn;
+import static io.shadowstack.Fluently.convert;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -11,23 +14,23 @@ public class TestMethodForwardingInterceptor {
     public void testAfter() throws AdapterException, NoSuchMethodException {
         // We're going to make pizza in a gas oven and pass it off as a wood-fired pizza
         GasOven gasOven = new GasOven();
-        WoodOven woodOven = Fluently.shoehorn(gasOven)
+        WoodOven woodOven = shoehorn(gasOven)
                 .into(WoodOven.class)
                 .routing(
                         Fluently.method("cook")
                                 .to("bake")
                                 .consuming(
-                                        Fluently.convert(Dough.class)
+                                        convert(Dough.class)
                                                 .to(DoughDTO.class)
-                                                .with(DoughConverter.INSTANCE),
-                                        Fluently.convert(Topping[].class)
+                                                .using(DoughConverter.INSTANCE),
+                                        convert(Topping[].class)
                                                 .to(String[].class)
-                                                .with(ToppingsConverter.INSTANCE)
+                                                .using(ToppingsConverter.INSTANCE)
                                 )
                                 .producing(
-                                        Fluently.convert(PizzaDTO.class)
+                                        convert(PizzaDTO.class)
                                                 .to(Pizza.class)
-                                                .with(PizzaDTOConverter.INSTANCE)
+                                                .using(PizzaDTOConverter.INSTANCE)
                                 )
                                 .after((inputs, instance, result) -> {
                                     // You're getting sausage whether you ordered it or not
@@ -50,20 +53,20 @@ public class TestMethodForwardingInterceptor {
         WoodOven woodOven = Fluently.shoehorn(gasOven)
                 .into(WoodOven.class)
                 .routing(
-                        Fluently.method("cook")
+                        method("cook")
                                 .to("bake")
                                 .consuming(
-                                        Fluently.convert(Dough.class)
+                                        convert(Dough.class)
                                                 .to(DoughDTO.class)
-                                                .with(DoughConverter.INSTANCE),
-                                        Fluently.convert(Topping[].class)
+                                                .using(DoughConverter.INSTANCE),
+                                        convert(Topping[].class)
                                                 .to(String[].class)
-                                                .with(ToppingsConverter.INSTANCE)
+                                                .using(ToppingsConverter.INSTANCE)
                                 )
                                 .producing(
-                                        Fluently.convert(PizzaDTO.class)
+                                        convert(PizzaDTO.class)
                                                 .to(Pizza.class)
-                                                .with(PizzaDTOConverter.INSTANCE)
+                                                .using(PizzaDTOConverter.INSTANCE)
                                 )
                                 .before((inputs, instance, result) -> {
                                     // Whatever you ordered, Hawaiian is better

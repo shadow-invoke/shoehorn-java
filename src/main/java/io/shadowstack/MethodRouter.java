@@ -132,7 +132,7 @@ public class MethodRouter {
         }
 
         @SuppressWarnings("unchecked")
-        public MethodRouter build(Class<?> classFrom, Class<?> classTo) throws NoSuchMethodException, AdapterException {
+        public MethodRouter build(Class<?> classExposed, Class<?> classAdapted) throws NoSuchMethodException, AdapterException {
             if(this.consumingFrom == null || this.consumingFrom.length == 0) {
                 throw new AdapterException("No consuming conversions passed to MethodRouter.Builder.");
             }
@@ -162,10 +162,10 @@ public class MethodRouter {
             }
 
             return new MethodRouter(
-                    classFrom.getMethod(this.methodFrom, uniqueIn.toArray(new Class<?>[0])),
+                    classExposed.getMethod(this.methodFrom, uniqueIn.toArray(new Class<?>[0])),
                     this.consumingFrom,
                     this.beforeForwarding,
-                    classTo.getMethod(this.methodTo, uniqueOut.toArray(new Class<?>[0])),
+                    classAdapted.getMethod(this.methodTo, uniqueOut.toArray(new Class<?>[0])),
                     this.producingTo,
                     this.afterForwarding
             );
@@ -202,7 +202,7 @@ public class MethodRouter {
 
         @SuppressWarnings("unchecked")
         @Override
-        public MethodRouter build(Class<?> classFrom, Class<?> classTo) throws NoSuchMethodException, AdapterException {
+        public MethodRouter build(Class<?> classExposed, Class<?> classAdapted) throws NoSuchMethodException, AdapterException {
             if(this.consumingFrom == null || this.consumingFrom.length == 0) {
                 throw new AdapterException("No consuming conversions passed to MethodRouter.Builder.");
             }

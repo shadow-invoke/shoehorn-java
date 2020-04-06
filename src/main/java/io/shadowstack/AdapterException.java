@@ -6,4 +6,8 @@ public class AdapterException extends Exception {
     public AdapterException(String message) {
         super(message);
     }
+
+    public AdapterException(Throwable t) {
+        super(t);
+    }
 }

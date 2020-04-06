@@ -47,7 +47,7 @@ public class TestSimple {
                         .consuming(
                             convert(Worm.class)
                                 .to(Mouse.class)
-                                .with(
+                                .using(
                                     new ArgumentConverter<Worm, Mouse>() {
                                         @Override
                                         public Mouse convert(Worm from) throws AdapterException {
@@ -62,7 +62,7 @@ public class TestSimple {
                         .producing(
                             convert(Kitten.class)
                                 .to(Egg.class)
-                                .with(
+                                .using(
                                     new ArgumentConverter<Kitten, Egg>() {
                                         @Override
                                         public Egg convert(Kitten from) throws AdapterException {

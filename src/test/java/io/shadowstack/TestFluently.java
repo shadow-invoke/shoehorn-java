@@ -8,6 +8,8 @@ import java.lang.reflect.Method;
 
 import static io.shadowstack.Fluently.reference;
 import static io.shadowstack.Fluently.method;
+import static io.shadowstack.Fluently.shoehorn;
+import static io.shadowstack.Fluently.convert;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -17,23 +19,23 @@ public class TestFluently {
     public void testShoehorn() throws AdapterException, NoSuchMethodException {
         // We're going to make pizza in a gas oven and pass it off as a wood-fired pizza
         GasOven gasOven = new GasOven();
-        WoodOven woodOven = Fluently.shoehorn(gasOven)
+        WoodOven woodOven = shoehorn(gasOven)
                                 .into(WoodOven.class)
                                 .routing(
                                         method("cook")
                                             .to("bake")
                                             .consuming(
-                                                    Fluently.convert(Dough.class)
+                                                    convert(Dough.class)
                                                             .to(DoughDTO.class)
-                                                            .with(DoughConverter.INSTANCE),
-                                                    Fluently.convert(Topping[].class)
+                                                            .using(DoughConverter.INSTANCE),
+                                                    convert(Topping[].class)
                                                             .to(String[].class)
-                                                            .with(ToppingsConverter.INSTANCE)
+                                                            .using(ToppingsConverter.INSTANCE)
                                             )
                                             .producing(
-                                                    Fluently.convert(PizzaDTO.class)
+                                                    convert(PizzaDTO.class)
                                                             .to(Pizza.class)
-                                                            .with(PizzaDTOConverter.INSTANCE)
+                                                            .using(PizzaDTOConverter.INSTANCE)
                                             )
                                 )
                                 .build();
@@ -43,7 +45,7 @@ public class TestFluently {
         assertEquals(expected, cooked);
         // That worked so well we're now going to microwave a calzone and call that a wood-fired pizza
         Microwave microwave = new Microwave();
-        woodOven = Fluently.shoehorn(microwave)
+        woodOven = shoehorn(microwave)
                         .into(WoodOven.class)
                         .routing(
                                 // This time we're going to get all fancy with MethRef-style references.
@@ -62,17 +64,17 @@ public class TestFluently {
                                     // Example of how multiple inputs of the exposed type can be converted
                                     // into a single input of the adapted instance.
                                     .consuming(
-                                            Fluently.convert(Dough.class)
+                                            convert(Dough.class)
                                                     .to(Calzone.class)
-                                                    .with(CalzoneFromDoughConverter.INSTANCE),
-                                            Fluently.convert(Topping[].class)
+                                                    .using(CalzoneFromDoughConverter.INSTANCE),
+                                            convert(Topping[].class)
                                                     .to(Calzone.class)
-                                                    .with(CalzoneFromToppingsConverter.INSTANCE)
+                                                    .using(CalzoneFromToppingsConverter.INSTANCE)
                                     )
                                     .producing(
-                                            Fluently.convert(Calzone.class)
+                                            convert(Calzone.class)
                                                     .to(Pizza.class)
-                                                    .with(PizzaFromCalzoneConverter.INSTANCE)
+                                                    .using(PizzaFromCalzoneConverter.INSTANCE)
                                     )
                         )
                         .build();
@@ -85,13 +87,13 @@ public class TestFluently {
     @Test
     public void testBadInputCases() throws AdapterException, NoSuchMethodException {
         // Try null adapted instance
-        Adapter.InnerBuilder<WoodOven> builder = Fluently.shoehorn(null).into(WoodOven.class);
+        Adapter.InnerBuilder<WoodOven> builder = shoehorn(null).into(WoodOven.class);
         assertThrows(AdapterException.class, builder::build);
         // Try null exposed type
-        builder = Fluently.shoehorn(new GasOven()).into(null);
+        builder = shoehorn(new GasOven()).into(null);
         assertThrows(AdapterException.class, builder::build);
         // Try no method routers
-        builder = Fluently.shoehorn(new GasOven()).into(WoodOven.class);
+        builder = shoehorn(new GasOven()).into(WoodOven.class);
         assertThrows(AdapterException.class, builder::build);
         // Try method router with no convert/consume specifications
         final Adapter.InnerBuilder<WoodOven> lambdaBuilder = builder;
@@ -105,12 +107,12 @@ public class TestFluently {
                             method("cook")
                                     .to("bake")
                                     .consuming(
-                                            Fluently.convert(Dough.class)
+                                            convert(Dough.class)
                                                     .to(DoughDTO.class)
-                                                    .with(DoughConverter.INSTANCE),
-                                            Fluently.convert(Topping[].class)
+                                                    .using(DoughConverter.INSTANCE),
+                                            convert(Topping[].class)
                                                     .to(String[].class)
-                                                    .with(ToppingsConverter.INSTANCE)
+                                                    .using(ToppingsConverter.INSTANCE)
                                     )
                     );
         });
@@ -121,17 +123,17 @@ public class TestFluently {
                                     method("cook")
                                             .to("")
                                             .consuming(
-                                                    Fluently.convert(Dough.class)
+                                                    convert(Dough.class)
                                                             .to(DoughDTO.class)
-                                                            .with(DoughConverter.INSTANCE),
-                                                    Fluently.convert(Topping[].class)
+                                                            .using(DoughConverter.INSTANCE),
+                                                    convert(Topping[].class)
                                                             .to(String[].class)
-                                                            .with(ToppingsConverter.INSTANCE)
+                                                            .using(ToppingsConverter.INSTANCE)
                                             )
                                             .producing(
-                                                    Fluently.convert(PizzaDTO.class)
+                                                    convert(PizzaDTO.class)
                                                             .to(Pizza.class)
-                                                            .with(PizzaDTOConverter.INSTANCE)
+                                                            .using(PizzaDTOConverter.INSTANCE)
                                             )
                             );
                 });
@@ -142,17 +144,17 @@ public class TestFluently {
                                     method("")
                                             .to("bake")
                                             .consuming(
-                                                    Fluently.convert(Dough.class)
+                                                    convert(Dough.class)
                                                             .to(DoughDTO.class)
-                                                            .with(DoughConverter.INSTANCE),
-                                                    Fluently.convert(Topping[].class)
+                                                            .using(DoughConverter.INSTANCE),
+                                                    convert(Topping[].class)
                                                             .to(String[].class)
-                                                            .with(ToppingsConverter.INSTANCE)
+                                                            .using(ToppingsConverter.INSTANCE)
                                             )
                                             .producing(
-                                                    Fluently.convert(PizzaDTO.class)
+                                                    convert(PizzaDTO.class)
                                                             .to(Pizza.class)
-                                                            .with(PizzaDTOConverter.INSTANCE)
+                                                            .using(PizzaDTOConverter.INSTANCE)
                                             )
                             );
                 });
@@ -163,17 +165,17 @@ public class TestFluently {
                             method("cook")
                                     .to(null)
                                     .consuming(
-                                            Fluently.convert(Dough.class)
+                                            convert(Dough.class)
                                                     .to(DoughDTO.class)
-                                                    .with(DoughConverter.INSTANCE),
-                                            Fluently.convert(Topping[].class)
+                                                    .using(DoughConverter.INSTANCE),
+                                            convert(Topping[].class)
                                                     .to(String[].class)
-                                                    .with(ToppingsConverter.INSTANCE)
+                                                    .using(ToppingsConverter.INSTANCE)
                                     )
                                     .producing(
-                                            Fluently.convert(PizzaDTO.class)
+                                            convert(PizzaDTO.class)
                                                     .to(Pizza.class)
-                                                    .with(PizzaDTOConverter.INSTANCE)
+                                                    .using(PizzaDTOConverter.INSTANCE)
                                     )
                     );
         });
@@ -188,17 +190,17 @@ public class TestFluently {
                             )
                             .to((Method)null)
                             .consuming(
-                                    Fluently.convert(Dough.class)
+                                    convert(Dough.class)
                                             .to(DoughDTO.class)
-                                            .with(DoughConverter.INSTANCE),
-                                    Fluently.convert(Topping[].class)
+                                            .using(DoughConverter.INSTANCE),
+                                    convert(Topping[].class)
                                             .to(String[].class)
-                                            .with(ToppingsConverter.INSTANCE)
+                                            .using(ToppingsConverter.INSTANCE)
                             )
                             .producing(
-                                    Fluently.convert(PizzaDTO.class)
+                                    convert(PizzaDTO.class)
                                             .to(Pizza.class)
-                                            .with(PizzaDTOConverter.INSTANCE)
+                                            .using(PizzaDTOConverter.INSTANCE)
                             )
                     );
         });
@@ -209,17 +211,17 @@ public class TestFluently {
                             method((Method)null)
                                     .to("bake")
                                     .consuming(
-                                            Fluently.convert(Dough.class)
+                                            convert(Dough.class)
                                                     .to(DoughDTO.class)
-                                                    .with(DoughConverter.INSTANCE),
-                                            Fluently.convert(Topping[].class)
+                                                    .using(DoughConverter.INSTANCE),
+                                            convert(Topping[].class)
                                                     .to(String[].class)
-                                                    .with(ToppingsConverter.INSTANCE)
+                                                    .using(ToppingsConverter.INSTANCE)
                                     )
                                     .producing(
-                                            Fluently.convert(PizzaDTO.class)
+                                            convert(PizzaDTO.class)
                                                     .to(Pizza.class)
-                                                    .with(PizzaDTOConverter.INSTANCE)
+                                                    .using(PizzaDTOConverter.INSTANCE)
                                     )
                     );
         });
@@ -235,17 +237,17 @@ public class TestFluently {
                                         )
                                 )
                                 .consuming(
-                                        Fluently.convert(Dough.class)
+                                        convert(Dough.class)
                                                 .to(DoughDTO.class)
-                                                .with(DoughConverter.INSTANCE),
-                                        Fluently.convert(Topping[].class)
+                                                .using(DoughConverter.INSTANCE),
+                                        convert(Topping[].class)
                                                 .to(String[].class)
-                                                .with(ToppingsConverter.INSTANCE)
+                                                .using(ToppingsConverter.INSTANCE)
                                 )
                                 .producing(
-                                        Fluently.convert(PizzaDTO.class)
+                                        convert(PizzaDTO.class)
                                                 .to(Pizza.class)
-                                                .with(PizzaDTOConverter.INSTANCE)
+                                                .using(PizzaDTOConverter.INSTANCE)
                                 )
                     );
         });
@@ -255,17 +257,17 @@ public class TestFluently {
                             method((String)null)
                                     .to("bake")
                                     .consuming(
-                                            Fluently.convert(Dough.class)
+                                            convert(Dough.class)
                                                     .to(DoughDTO.class)
-                                                    .with(DoughConverter.INSTANCE),
-                                            Fluently.convert(Topping[].class)
+                                                    .using(DoughConverter.INSTANCE),
+                                            convert(Topping[].class)
                                                     .to(String[].class)
-                                                    .with(ToppingsConverter.INSTANCE)
+                                                    .using(ToppingsConverter.INSTANCE)
                                     )
                                     .producing(
-                                            Fluently.convert(PizzaDTO.class)
+                                            convert(PizzaDTO.class)
                                                     .to(Pizza.class)
-                                                    .with(PizzaDTOConverter.INSTANCE)
+                                                    .using(PizzaDTOConverter.INSTANCE)
                                     )
                     );
         });
@@ -277,9 +279,9 @@ public class TestFluently {
                             .to("")
                             .consuming()
                             .producing(
-                                    Fluently.convert(PizzaDTO.class)
+                                    convert(PizzaDTO.class)
                                             .to(Pizza.class)
-                                            .with(PizzaDTOConverter.INSTANCE)
+                                            .using(PizzaDTOConverter.INSTANCE)
                             )
                     );
         });
@@ -287,23 +289,23 @@ public class TestFluently {
         assertThrows(AdapterException.class, () -> {
             Fluently.convert(Dough.class)
                     .to(DoughDTO.class)
-                    .with(null);
+                    .using(null);
         });
         // Try forwarding invalid inputs through a valid router
         final MethodRouter router = method("cook")
                                         .to("heat")
                                         .consuming(
-                                            Fluently.convert(Dough.class)
+                                            convert(Dough.class)
                                                     .to(Calzone.class)
-                                                    .with(CalzoneFromDoughConverter.INSTANCE),
-                                            Fluently.convert(Topping[].class)
+                                                    .using(CalzoneFromDoughConverter.INSTANCE),
+                                            convert(Topping[].class)
                                                     .to(Calzone.class)
-                                                    .with(CalzoneFromToppingsConverter.INSTANCE)
+                                                    .using(CalzoneFromToppingsConverter.INSTANCE)
                                         )
                                         .producing(
-                                            Fluently.convert(Calzone.class)
+                                            convert(Calzone.class)
                                                     .to(Pizza.class)
-                                                    .with(PizzaFromCalzoneConverter.INSTANCE)
+                                                    .using(PizzaFromCalzoneConverter.INSTANCE)
                                         ).build(WoodOven.class, Microwave.class);
         assertThrows(AdapterException.class, () -> router.forward(null, new Microwave()));
         assertThrows(AdapterException.class, () -> router.forward(new Object[1], null));

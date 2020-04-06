@@ -2,13 +2,20 @@ package io.shadowstack;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static io.shadowstack.Fluently.*;
+import static io.shadowstack.Fluently.convert;
 
 @Data
 @AllArgsConstructor
@@ -48,6 +55,7 @@ public class Adapter implements MethodInterceptor {
         }
     }
 
+    @Slf4j
     public static class InnerBuilder<T> {
         private final Object adaptedInstance;
         private final Class<T> exposedInterface;
@@ -68,7 +76,7 @@ public class Adapter implements MethodInterceptor {
             return this;
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "rawtypes"})
         public T build() throws AdapterException {
             if(this.adaptedInstance == null) {
                 throw new AdapterException("Null adapted instance.");
@@ -77,7 +85,56 @@ public class Adapter implements MethodInterceptor {
                 throw new AdapterException("Null target class.");
             }
             if(this.methodRouters.size() == 0) {
-                throw new AdapterException("No method routers passed to adapter builder.");
+                log.info("No method routers provided, attempting to derive from annotations...");
+                try {
+                    List<MethodRouter.Builder> methodRouterBuilders = new ArrayList<>();
+                    for (Method adapteeMethod : this.adaptedInstance.getClass().getDeclaredMethods()) {
+                        Mimic mimicAnnotation = adapteeMethod.getAnnotation(Mimic.class);
+                        Convert convertAnnotation = adapteeMethod.getAnnotation(Convert.class);
+                        if (mimicAnnotation != null && convertAnnotation != null) {
+                            Class<?> type = mimicAnnotation.type();
+                            if (type.equals(this.exposedInterface)) {
+                                // this method on from mimics a method on to
+                                MethodRouter.Builder routerBuilder = method(adapteeMethod.getName())
+                                                                        .to(mimicAnnotation.method());
+                                List<ArgumentConversion> cbs = new ArrayList<>();
+                                Annotation[][] allParameterAnnotations = adapteeMethod.getParameterAnnotations();
+                                Class<?>[] parameterTypes = adapteeMethod.getParameterTypes();
+                                int i = 0;
+                                for (Annotation[] parameterAnnotations : allParameterAnnotations) {
+                                    Class<?> parameterClass = parameterTypes[i++];
+                                    for (Annotation annotation : parameterAnnotations) {
+                                        if (annotation instanceof Convert) {
+                                            Convert argumentAnnotation = (Convert) annotation;
+                                            Class<? extends ArgumentConverter<?, ?>> clazz = argumentAnnotation.use();
+                                            ArgumentConverter ac = ArgumentConverter.getInstanceOf(clazz);
+                                            // This is a little counter-intuitive. Here, we're converting the
+                                            // input of the exposed interface into the type of the adapted
+                                            // instance's method. So the opposite of the direction we're
+                                            // going with the output.
+                                            cbs.add(
+                                                convert(
+                                                    argumentAnnotation.to()
+                                                )
+                                                .to(parameterClass)
+                                                .using(ac)
+                                            );
+                                        }
+                                    }
+                                }
+                                routerBuilder.consuming(cbs.toArray(new ArgumentConversion[0]));
+                                Class<?> rt = adapteeMethod.getReturnType();
+                                Class<? extends ArgumentConverter<?, ?>> clazz = convertAnnotation.use();
+                                ArgumentConverter ac = ArgumentConverter.getInstanceOf(clazz);
+                                routerBuilder.producing(convert(rt).to(convertAnnotation.to()).using(ac));
+                                methodRouterBuilders.add(routerBuilder);
+                            }
+                        }
+                    }
+                    this.routing(methodRouterBuilders.toArray(new MethodRouter.Builder[0]));
+                } catch(Throwable t){
+                    throw new AdapterException(t);
+                }
             }
 
             return (T) Enhancer.create(this.exposedInterface, new Adapter(this.adaptedInstance, this.methodRouters));
