@@ -19,8 +19,4 @@ public interface Receipt2Confirmation2 extends ArgumentConverter<Receipt, Confir
     @Override
     @Mapping(target = "total", source = "total")
     void convert(Receipt from, @MappingTarget Confirmation to) throws AdapterException;
-
-    static ArgumentConverter<?, ?> instance() {
-        return Mappers.getMapper(Receipt2Confirmation2.class);
-    }
 }

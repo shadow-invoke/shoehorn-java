@@ -15,4 +15,8 @@ public interface VirtualCart2PhysicalCart2 extends ArgumentConverter<VirtualCart
 
     @Override
     void convert(VirtualCart from, @MappingTarget PhysicalCart to) throws AdapterException;
+
+    static ArgumentConverter<?, ?> instance() {
+        return Mappers.getMapper(VirtualCart2PhysicalCart2.class);
+    }
 }
