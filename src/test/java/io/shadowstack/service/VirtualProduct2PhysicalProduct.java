@@ -15,8 +15,4 @@ public interface VirtualProduct2PhysicalProduct extends ArgumentConverter<Virtua
 
     @Override
     void convert(VirtualProduct from, @MappingTarget PhysicalProduct to) throws AdapterException;
-
-    static ArgumentConverter<?, ?> instance() {
-        return Mappers.getMapper(VirtualProduct2PhysicalProduct.class);
-    }
 }

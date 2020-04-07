@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import static io.shadowstack.Fluently.*;
-import static io.shadowstack.Fluently.convert;
 
 @Data
 @AllArgsConstructor
@@ -90,11 +89,10 @@ public class Adapter implements MethodInterceptor {
                     List<MethodRouter.Builder> methodRouterBuilders = new ArrayList<>();
                     for (Method adapteeMethod : this.adaptedInstance.getClass().getDeclaredMethods()) {
                         Mimic mimicAnnotation = adapteeMethod.getAnnotation(Mimic.class);
-                        Convert convertAnnotation = adapteeMethod.getAnnotation(Convert.class);
+                        Convert convertAnnotation = adapteeMethod.getAnnotation(Convert.class); // for return type
                         if (mimicAnnotation != null && convertAnnotation != null) {
                             Class<?> type = mimicAnnotation.type();
-                            if (type.equals(this.exposedInterface)) {
-                                // this method on from mimics a method on to
+                            if (type.equals(this.exposedInterface)) { // this method mimics one on the exposed interface
                                 MethodRouter.Builder routerBuilder = method(adapteeMethod.getName())
                                                                         .to(mimicAnnotation.method());
                                 List<ArgumentConversion> cbs = new ArrayList<>();
@@ -106,12 +104,10 @@ public class Adapter implements MethodInterceptor {
                                     for (Annotation annotation : parameterAnnotations) {
                                         if (annotation instanceof Convert) {
                                             Convert argumentAnnotation = (Convert) annotation;
-                                            Class<? extends ArgumentConverter<?, ?>> clazz = argumentAnnotation.use();
-                                            ArgumentConverter ac = ArgumentConverter.getInstanceOf(clazz);
-                                            // This is a little counter-intuitive. Here, we're converting the
-                                            // input of the exposed interface into the type of the adapted
-                                            // instance's method. So the opposite of the direction we're
-                                            // going with the output.
+                                            ArgumentConverter ac = ArgumentConverter.getInstanceFor(argumentAnnotation);
+                                            // Here, we're converting from an input type of the exposed interface into
+                                            // an input type of the adapted instance's method. This conversion goes in
+                                            // the opposite direction of our output conversion.
                                             cbs.add(
                                                 convert(
                                                     argumentAnnotation.to()
@@ -123,10 +119,9 @@ public class Adapter implements MethodInterceptor {
                                     }
                                 }
                                 routerBuilder.consuming(cbs.toArray(new ArgumentConversion[0]));
-                                Class<?> rt = adapteeMethod.getReturnType();
-                                Class<? extends ArgumentConverter<?, ?>> clazz = convertAnnotation.use();
-                                ArgumentConverter ac = ArgumentConverter.getInstanceOf(clazz);
-                                routerBuilder.producing(convert(rt).to(convertAnnotation.to()).using(ac));
+                                Class<?> returnType = adapteeMethod.getReturnType();
+                                ArgumentConverter converter = ArgumentConverter.getInstanceFor(convertAnnotation);
+                                routerBuilder.producing(convert(returnType).to(convertAnnotation.to()).using(converter));
                                 methodRouterBuilders.add(routerBuilder);
                             }
                         }
