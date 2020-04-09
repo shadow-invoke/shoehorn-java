@@ -2,6 +2,7 @@ package io.shadowstack;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -74,6 +75,7 @@ public class MethodRouter {
         return this.producingTo.convert(adaptedInstanceResult);
     }
 
+    @Slf4j
     @SuppressWarnings("rawtypes")
     public static class Builder {
         private final String methodFrom;
@@ -107,6 +109,9 @@ public class MethodRouter {
          * @return The Builder, for fluency.
          */
         public Builder before(MethodForwardingInterceptor interceptor) {
+            if(this.beforeForwarding != null) {
+                log.warn("Before interceptor previously set; overwriting.");
+            }
             this.beforeForwarding = interceptor;
             return this;
         }
@@ -117,16 +122,25 @@ public class MethodRouter {
          * @return The Builder, for fluency.
          */
         public Builder after(MethodForwardingInterceptor interceptor) {
+            if(this.afterForwarding != null) {
+                log.warn("After interceptor previously set; overwriting.");
+            }
             this.afterForwarding = interceptor;
             return this;
         }
 
         public Builder consuming(ArgumentConversion... conversions) {
+            if(this.consumingFrom != null) {
+                log.warn("Consuming conversions previously set; overwriting.");
+            }
             this.consumingFrom = conversions;
             return this;
         }
 
         public Builder producing(ArgumentConversion conversion) {
+            if(this.producingTo != null) {
+                log.warn("Producing conversion previously set; overwriting.");
+            }
             this.producingTo = conversion;
             return this;
         }

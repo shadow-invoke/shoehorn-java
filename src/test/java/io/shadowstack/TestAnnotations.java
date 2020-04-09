@@ -45,4 +45,16 @@ public class TestAnnotations {
         RetailCashier5 cashier5 = new RetailCashier5("Pat");
         assertThrows(AdapterException.class, () -> shoehorn(cashier5).into(RetailWebsite.class).build());
     }
+    @Test
+    public void testAdapterAdvice() throws AdapterException {
+        // Before and after interceptors will add to the total
+        Confirmation expected = new Confirmation(2.99D + 3.99D + 1.99D + 0.99D, null, null);
+        VirtualCart virtualCart = new VirtualCart();
+        virtualCart.getProducts().add(new VirtualProduct("eggs", 2.99D, 1, 1));
+        virtualCart.getProducts().add(new VirtualProduct("milk", 3.99D, 1, 1));
+        RetailCashier6 cashier = new RetailCashier6("Pat");
+        RetailWebsite website = shoehorn(cashier).into(RetailWebsite.class).build();
+        Confirmation confirmation = website.checkout(virtualCart);
+        assertEquals(expected, confirmation);
+    }
 }

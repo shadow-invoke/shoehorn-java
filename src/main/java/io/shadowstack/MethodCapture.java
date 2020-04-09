@@ -12,6 +12,7 @@ import java.util.function.Consumer;
  * Captures a Method reference from a given Consumer. Allows us to extract a Method object
  * from a lambda instead of passing the method name as a String. Similar in functionality
  * to Jodd's MethRef (https://jodd.org/ref/methref.html).
+ * TODO: Replace with MethodHandles?
  * @param <T>
  */
 public class MethodCapture<T> implements MethodInterceptor {
