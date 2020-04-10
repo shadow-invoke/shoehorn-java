@@ -43,6 +43,6 @@ public class TestVoidAndPrimitiveConversions {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
         is.printSquare(2);
-        assertEquals("4.0\r\n", outContent.toString());
+        assertEquals("4.0" + System.lineSeparator(), outContent.toString());
     }
 }
