@@ -64,4 +64,10 @@ public class TestAnnotations {
         RetailCashier7 cashier = new RetailCashier7("Pat");
         assertThrows(AdapterException.class, () -> shoehorn(cashier).into(RetailWebsite.class).build());
     }
+
+    @Test
+    public void testBadMimicMethod() {
+        RetailCashier8 cashier = new RetailCashier8("Pat");
+        assertThrows(AdapterException.class, () -> shoehorn(cashier).into(RetailWebsite.class).build());
+    }
 }

@@ -167,8 +167,8 @@ public class Adapter implements MethodInterceptor {
                     this.routing(methodRouterBuilders.toArray(new MethodRouter.Builder[0]));
                 } catch(AdapterException e) {
                     throw e;
-                } catch(Throwable t){
-                    throw new AdapterException(t);
+                } catch (NoSuchMethodException e) {
+                    throw new AdapterException(e);
                 }
             }
 
