@@ -10,4 +10,8 @@ public class AdapterException extends Exception {
     public AdapterException(Throwable t) {
         super(t);
     }
+
+    public AdapterException(String message, Throwable t) {
+        super(message, t);
+    }
 }

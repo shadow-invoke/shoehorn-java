@@ -45,6 +45,7 @@ public class TestAnnotations {
         RetailCashier5 cashier5 = new RetailCashier5("Pat");
         assertThrows(AdapterException.class, () -> shoehorn(cashier5).into(RetailWebsite.class).build());
     }
+
     @Test
     public void testAdapterAdvice() throws AdapterException {
         // Before and after interceptors will add to the total
@@ -56,5 +57,11 @@ public class TestAnnotations {
         RetailWebsite website = shoehorn(cashier).into(RetailWebsite.class).build();
         Confirmation confirmation = website.checkout(virtualCart);
         assertEquals(expected, confirmation);
+    }
+
+    @Test
+    public void testBadAdapterAdvice() {
+        RetailCashier7 cashier = new RetailCashier7("Pat");
+        assertThrows(AdapterException.class, () -> shoehorn(cashier).into(RetailWebsite.class).build());
     }
 }

@@ -307,4 +307,36 @@ public class TestFluently {
         assertThrows(AdapterException.class, () -> router.forward(null, new Microwave()));
         assertThrows(AdapterException.class, () -> router.forward(new Object[1], null));
     }
+
+    @Test
+    public void testRouterBuildsWithRedundantSetters() throws AdapterException, NoSuchMethodException {
+        final MethodRouter router = method("cook")
+                .to("heat")
+                .consuming(
+                        convert(Dough.class)
+                                .to(Calzone.class)
+                                .using(CalzoneFromDoughConverter.INSTANCE),
+                        convert(Topping[].class)
+                                .to(Calzone.class)
+                                .using(CalzoneFromToppingsConverter.INSTANCE)
+                )
+                .consuming(
+                        convert(Dough.class)
+                                .to(Calzone.class)
+                                .using(CalzoneFromDoughConverter.INSTANCE),
+                        convert(Topping[].class)
+                                .to(Calzone.class)
+                                .using(CalzoneFromToppingsConverter.INSTANCE)
+                )
+                .producing(
+                        convert(Calzone.class)
+                                .to(Pizza.class)
+                                .using(PizzaFromCalzoneConverter.INSTANCE)
+                )
+                .producing(
+                        convert(Calzone.class)
+                                .to(Pizza.class)
+                                .using(PizzaFromCalzoneConverter.INSTANCE)
+                ).build(WoodOven.class, Microwave.class);
+    }
 }

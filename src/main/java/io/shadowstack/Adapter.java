@@ -141,7 +141,7 @@ public class Adapter implements MethodInterceptor {
                                 } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                                     String fullMethodName = adaptedClass.getCanonicalName() + "." + adapteeMethod.getName();
                                     String msg = "Couldn't add adapter advice %s to method %s. Is it missing a default constructor?";
-                                    log.error(String.format(msg, advice.interceptor().getSimpleName(), fullMethodName), e);
+                                    throw new AdapterException(String.format(msg, advice.interceptor().getSimpleName(), fullMethodName), e);
                                 }
                             }
                         }
