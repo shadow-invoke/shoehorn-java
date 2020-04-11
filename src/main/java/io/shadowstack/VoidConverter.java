@@ -1,7 +1,4 @@
-package io.shadowstack.service;
-
-import io.shadowstack.AdapterException;
-import io.shadowstack.ArgumentConverter;
+package io.shadowstack;
 
 public class VoidConverter implements ArgumentConverter<Void, Void> {
     public static VoidConverter INSTANCE = new VoidConverter();

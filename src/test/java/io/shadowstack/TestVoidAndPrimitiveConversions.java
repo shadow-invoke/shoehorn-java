@@ -1,6 +1,5 @@
 package io.shadowstack;
 
-import io.shadowstack.service.VoidConverter;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -18,7 +17,8 @@ public class TestVoidAndPrimitiveConversions {
 
     public static class DoubleSquare {
         @Mimic(type = IntegerSquare.class, method = "printSquare")
-        @Convert(to = Void.class, use = VoidConverter.class)
+        // If omitted, we assume the following:
+        // @Convert(to = Void.class, use = VoidConverter.class)
         public void printSquare(@Convert(to = Integer.class, use = Integer2Double.class) Double x) {
             System.out.println(x * x);
         }

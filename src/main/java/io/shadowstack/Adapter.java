@@ -80,9 +80,17 @@ public class Adapter implements MethodInterceptor {
             // Look for methods on the adapted instance that mimic a method of the exposed interface
             for (Method adapteeMethod : adaptedClass.getDeclaredMethods()) {
                 Mimic mimicAnnotation = adapteeMethod.getAnnotation(Mimic.class);
-                // TODO: support void return type
-                Convert convertAnnotation = adapteeMethod.getAnnotation(Convert.class); // for return type
-                if (mimicAnnotation != null && convertAnnotation != null) {
+                if (mimicAnnotation != null) {
+                    Convert convertAnnotation = adapteeMethod.getAnnotation(Convert.class);
+                    // If no annotation exists to specify return type conversion, we assume void return
+                    ArgumentConverter converter = new VoidConverter();
+                    Class<?> toClass = Void.class;
+                    if (convertAnnotation != null) {
+                        // Get the converter for the return type. This converts from the return type of the adapted
+                        // instance to the return type of the exposed method which it mimics.
+                        converter = ArgumentConverter.getInstanceFor(convertAnnotation);
+                        toClass = convertAnnotation.to();
+                    }
                     Class<?> type = mimicAnnotation.type();
                     if (type.equals(this.exposedInterface)) { // this method mimics one on the exposed interface
                         // Begin building the router to forward calls against the exposed method to our mimicking method
@@ -113,10 +121,7 @@ public class Adapter implements MethodInterceptor {
                         }
                         routerBuilder.consuming(conversionBuilders.toArray(new ArgumentConversion[0]));
                         Class<?> returnType = adapteeMethod.getReturnType();
-                        // Get the converter for the return type. This converts from the return type of the adapted
-                        // instance to the return type of the exposed method which it mimics.
-                        ArgumentConverter converter = ArgumentConverter.getInstanceFor(convertAnnotation);
-                        routerBuilder.producing(convert(returnType).to(convertAnnotation.to()).using(converter));
+                        routerBuilder.producing(convert(returnType).to(toClass).using(converter));
                         // Add to the router any advice interceptors annotated on this method
                         AdapterAdvice[] advisors = adapteeMethod.getAnnotationsByType(AdapterAdvice.class);
                         if(advisors != null && advisors.length > 0) {
@@ -142,10 +147,6 @@ public class Adapter implements MethodInterceptor {
                         }
                         methodRouterBuilders.add(routerBuilder);
                     }
-                } else if (mimicAnnotation != null || convertAnnotation != null) {
-                    String msg = "Method %s is annotated with either a mimicked method (%s) " +
-                                 "or converted result (%s), but not both. It will be skipped.";
-                    log.warn(String.format(msg, adapteeMethod.getName(), mimicAnnotation, convertAnnotation));
                 }
             }
             return methodRouterBuilders;
