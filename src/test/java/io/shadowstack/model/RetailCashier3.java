@@ -1,7 +1,8 @@
 package io.shadowstack.model;
 
-import io.shadowstack.Convert;
+import io.shadowstack.In;
 import io.shadowstack.Mimic;
+import io.shadowstack.Out;
 import io.shadowstack.service.Receipt2Confirmation3;
 import io.shadowstack.service.VirtualCart2PhysicalCart3;
 import lombok.AllArgsConstructor;
@@ -13,8 +14,8 @@ public class RetailCashier3 {
     private String name;
 
     @Mimic(type = RetailWebsite.class, method = "checkout")
-    @Convert(to = Confirmation.class, use = Receipt2Confirmation3.class, singletonInstance = "SINGLETON")
-    public Receipt checkout(@Convert(to = VirtualCart.class, use = VirtualCart2PhysicalCart3.class, factoryMethod = "getSingleton") PhysicalCart cart) {
+    @Out(to = Confirmation.class, with = Receipt2Confirmation3.class, singletonMember = "SINGLETON")
+    public Receipt checkout(@In(from = VirtualCart.class, with = VirtualCart2PhysicalCart3.class, factoryMethods = "getSingleton") PhysicalCart cart) {
         double total = 0.0D;
         if(cart != null) {
             for(PhysicalProduct p : cart.getProducts()) {

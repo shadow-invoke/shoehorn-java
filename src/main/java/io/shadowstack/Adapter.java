@@ -79,22 +79,23 @@ public class Adapter implements MethodInterceptor {
             Class<?> adaptedClass = this.adaptedInstance.getClass();
             // Look for methods on the adapted instance that mimic a method of the exposed interface
             for (Method adapteeMethod : adaptedClass.getDeclaredMethods()) {
+                String fullMethodName = adaptedClass.getCanonicalName() + "." + adapteeMethod.getName();
                 Mimic mimicAnnotation = adapteeMethod.getAnnotation(Mimic.class);
                 if (mimicAnnotation != null) {
-                    Convert convertAnnotation = adapteeMethod.getAnnotation(Convert.class);
+                    Out outAnnotation = adapteeMethod.getAnnotation(Out.class);
                     // If no annotation exists to specify return type conversion, we assume void return
                     ArgumentConverter converter = new VoidConverter();
                     Class<?> toClass = Void.class;
-                    if (convertAnnotation != null) {
+                    if (outAnnotation != null) {
                         // Get the converter for the return type. This converts from the return type of the adapted
                         // instance to the return type of the exposed method which it mimics.
-                        converter = ArgumentConverter.getInstanceFor(convertAnnotation);
-                        toClass = convertAnnotation.to();
+                        converter = ArgumentConverter.getInstanceFor(outAnnotation);
+                        toClass = outAnnotation.to();
                     }
                     Class<?> type = mimicAnnotation.type();
                     if (type.equals(this.exposedInterface)) { // this method mimics one on the exposed interface
                         // Begin building the router to forward calls against the exposed method to our mimicking method
-                        MethodRouter.Builder routerBuilder = method(adapteeMethod.getName()).to(mimicAnnotation.method());
+                        MethodRouter.Builder routerBuilder = method(mimicAnnotation.method()).to(adapteeMethod.getName());
                         List<ArgumentConversion> conversionBuilders = new ArrayList<>();
                         Annotation[][] allParameterAnnotations = adapteeMethod.getParameterAnnotations();
                         Class<?>[] parameterTypes = adapteeMethod.getParameterTypes();
@@ -103,19 +104,22 @@ public class Adapter implements MethodInterceptor {
                         for (Annotation[] parameterAnnotations : allParameterAnnotations) {
                             Class<?> parameterClass = parameterTypes[i++];
                             for (Annotation annotation : parameterAnnotations) {
-                                if (annotation instanceof Convert) {
-                                    Convert argumentAnnotation = (Convert) annotation;
-                                    ArgumentConverter ac = ArgumentConverter.getInstanceFor(argumentAnnotation);
-                                    // Here, we're converting from an input type of the exposed interface into
-                                    // an input type of the adapted instance's method. This conversion goes in
-                                    // the opposite direction of our output conversion.
-                                    conversionBuilders.add(
+                                if (annotation instanceof In) {
+                                    In argumentAnnotation = (In) annotation;
+                                    ArgumentConverter[] converters = ArgumentConverter.getInstancesFor(argumentAnnotation);
+                                    for(int j=0;j<converters.length;j++) {
+                                        ArgumentConverter ac = converters[j];
+                                        // Here, we're converting from an input type of the exposed interface into
+                                        // an input type of the adapted instance's method. This conversion goes in
+                                        // the opposite direction of our output conversion.
+                                        conversionBuilders.add(
                                             convert(
-                                                    argumentAnnotation.to()
+                                                argumentAnnotation.from()[j]
                                             )
-                                                    .to(parameterClass)
-                                                    .using(ac)
-                                    );
+                                            .to(parameterClass)
+                                            .using(ac)
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -139,7 +143,6 @@ public class Adapter implements MethodInterceptor {
                                     }
 
                                 } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                                    String fullMethodName = adaptedClass.getCanonicalName() + "." + adapteeMethod.getName();
                                     String msg = "Couldn't add adapter advice %s to method %s. Is it missing a default constructor?";
                                     throw new AdapterException(String.format(msg, advice.interceptor().getSimpleName(), fullMethodName), e);
                                 }

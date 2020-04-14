@@ -18,8 +18,8 @@ public class TestVoidAndPrimitiveConversions {
     public static class DoubleSquare {
         @Mimic(type = IntegerSquare.class, method = "printSquare")
         // If omitted, we assume the following:
-        // @Convert(to = Void.class, use = VoidConverter.class)
-        public void printSquare(@Convert(to = Integer.class, use = Integer2Double.class) Double x) {
+        // @In(to = Void.class, use = VoidConverter.class)
+        public void printSquare(@In(from = Integer.class, with = Integer2Double.class) Double x) {
             System.out.println(x * x);
         }
     }

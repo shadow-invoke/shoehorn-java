@@ -1,7 +1,7 @@
 ![square pegs in round holes](https://raw.githubusercontent.com/shadow-invoke/assets/master/shoehorn-java/shoehorn-logo-120.png)
 # Shoehorn
 
-![Java CI](https://github.com/shadow-invoke/shoehorn-java/workflows/Java%20CI/badge.svg) [![codecov](https://codecov.io/gh/shadow-invoke/shoehorn-java/branch/master/graph/badge.svg)](https://codecov.io/gh/shadow-invoke/shoehorn-java)
+![Java CI](https://github.com/shadow-invoke/shoehorn-java/workflows/Java%20CI/badge.svg) [![codecov](https://codecov.io/gh/shadow-invoke/shoehorn-java/branch/master/graph/badge.svg)](https://codecov.io/gh/shadow-invoke/shoehorn-java) [![Maven Central](https://img.shields.io/maven-central/v/io.shadowstack/shoehorn-java.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.shadowstack%22%20AND%20a:%22shoehorn-java%22)
 
 Ad-hoc, fluent adapters for Java. Shoehorn any instance into any other interface or class, regardless of inheritance and with no 
 custom code other than argument converters (which [Mapstruct](https://mapstruct.org/) can do for you).
@@ -14,7 +14,7 @@ Maven Central:
 <dependency>
   <groupId>io.shadowstack</groupId>
   <artifactId>shoehorn-java</artifactId>
-  <version>0.3.1</version>
+  <version>0.4.0</version>
 </dependency>
 ```
 
