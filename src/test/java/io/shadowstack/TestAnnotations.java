@@ -36,6 +36,10 @@ public class TestAnnotations {
         RetailWebsite website = shoehorn(cashier).into(RetailWebsite.class).build();
         Confirmation confirmation = website.checkout(virtualCart);
         assertEquals(expected, confirmation);
+        RetailCashier10 cashier10 = new RetailCashier10("Pat");
+        website = shoehorn(cashier10).into(RetailWebsite.class).build();
+        confirmation = website.checkout(virtualCart);
+        assertEquals(expected, confirmation);
     }
 
     @Test
@@ -44,6 +48,8 @@ public class TestAnnotations {
         assertThrows(AdapterException.class, () -> shoehorn(cashier4).into(RetailWebsite.class).build());
         RetailCashier5 cashier5 = new RetailCashier5("Pat");
         assertThrows(AdapterException.class, () -> shoehorn(cashier5).into(RetailWebsite.class).build());
+        RetailCashier9 cashier9 = new RetailCashier9("Pat");
+        assertThrows(AdapterException.class, () -> shoehorn(cashier9).into(RetailWebsite.class).build());
     }
 
     @Test
