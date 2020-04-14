@@ -9,6 +9,7 @@ import java.io.PrintStream;
 
 import static io.shadowstack.Fluently.shoehorn;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestVoidAndPrimitiveConversions {
     public static interface IntegerSquare {
@@ -19,6 +20,13 @@ public class TestVoidAndPrimitiveConversions {
         @Mimic(type = IntegerSquare.class, method = "printSquare")
         // If omitted, we assume the following:
         // @In(to = Void.class, use = VoidConverter.class)
+        public void printSquare(@In(from = Integer.class, with = Integer2Double.class) Double x) {
+            System.out.println(x * x);
+        }
+    }
+
+    public static class DoubleSquareBad {
+        @Mimic(type = IntegerSquare.class, method = "nope")
         public void printSquare(@In(from = Integer.class, with = Integer2Double.class) Double x) {
             System.out.println(x * x);
         }
@@ -44,5 +52,6 @@ public class TestVoidAndPrimitiveConversions {
         System.setOut(new PrintStream(outContent));
         is.printSquare(2);
         assertEquals("4.0" + System.lineSeparator(), outContent.toString());
+        assertThrows(AdapterException.class, () -> shoehorn(new DoubleSquareBad()).into(IntegerSquare.class).build());
     }
 }
