@@ -6,7 +6,7 @@
 
     <groupId>io.shadowstack</groupId>
     <artifactId>shoehorn-java</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Ad-hoc, fluent adapters for Java.</description>
